@@ -1,0 +1,321 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum InterviewStatus {
+  APPLIED
+  SCREENING
+  TECHNICAL
+  FINAL
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum ResumeTheme {
+  CLASSIC
+  EXECUTIVE
+  MODERN
+}
+
+enum JobPostingSource {
+  MANUAL
+  RESUME_OPTIMIZE
+  INTERVIEW_PREP
+}
+
+enum ApplicationStatus {
+  SAVED
+  READY
+  APPLIED
+  SCREENING
+  INTERVIEWING
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum ApplicationPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ApplicationEventKind {
+  MANUAL_NOTE
+}
+
+enum MockInterviewSessionStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum MockInterviewQuestionCategory {
+  EXPERIENCE
+  PROJECT
+  TECHNICAL
+  SCENARIO
+  COMMUNICATION
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  profiles     Profile[]
+  resumes      Resume[]
+  jobPostings  JobPosting[]
+  interviews   InterviewRecord[]
+  applications Application[]
+  applicationEvents ApplicationEvent[]
+  mockInterviewSessions MockInterviewSession[]
+  mockInterviewTurns MockInterviewTurn[]
+  geminiConfig GeminiConfig?
+  generationRuns GenerationRun[]
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  basicsJson  String
+  experienceJson String
+  projectsJson String
+  skillsJson  String
+  educationJson String
+  language    String   @default("zh-CN")
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Resume {
+  id           String   @id @default(cuid())
+  userId       String
+  profileId    String?
+  jobPostingId String?
+  parentResumeId String?
+  title        String
+  contentJson  String
+  markdown     String
+  language     String   @default("zh-CN")
+  version      Int      @default(1)
+  theme        ResumeTheme @default(CLASSIC)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPosting   JobPosting? @relation(fields: [jobPostingId], references: [id], onDelete: SetNull)
+  parentResume Resume?  @relation("ResumeHistory", fields: [parentResumeId], references: [id], onDelete: SetNull)
+  childResumes Resume[] @relation("ResumeHistory")
+  applications Application[]
+  diagnoses    ResumeDiagnosis[]
+}
+
+model JobPosting {
+  id            String   @id @default(cuid())
+  userId         String
+  company        String
+  role           String
+  description    String
+  language       String   @default("zh-CN")
+  source         JobPostingSource @default(MANUAL)
+  saved          Boolean  @default(false)
+  parsedJson     String
+  keywordsJson   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumes        Resume[]
+  diagnoses      ResumeDiagnosis[]
+  interviewPreps InterviewPrep[]
+  interviews     InterviewRecord[]
+  applications   Application[]
+  mockInterviewSessions MockInterviewSession[]
+}
+
+model ResumeDiagnosis {
+  id             String   @id @default(cuid())
+  userId         String
+  resumeId       String
+  jobPostingId   String
+  score          Int
+  strengthsJson  String
+  gapsJson       String
+  suggestionsJson String
+  riskFlagsJson  String
+  createdAt      DateTime @default(now())
+  resume         Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobPosting     JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId, jobPostingId])
+}
+
+model InterviewPrep {
+  id            String   @id @default(cuid())
+  userId        String
+  jobPostingId  String
+  targetLevel   String
+  strategy      String
+  questionsJson String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  jobPosting    JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+}
+
+model InterviewRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  jobPostingId    String
+  applicationId   String?
+  roundName       String
+  interviewer     String?
+  scheduledAt     DateTime?
+  status          InterviewStatus @default(APPLIED)
+  notes           String
+  summary         String?
+  feedback        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPosting      JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  application     Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+}
+
+model Application {
+  id          String              @id @default(cuid())
+  userId      String
+  jobPostingId String
+  resumeId    String?
+  status      ApplicationStatus   @default(SAVED)
+  priority    ApplicationPriority @default(MEDIUM)
+  source      String?
+  notes       String              @default("")
+  appliedAt   DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPosting  JobPosting          @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  resume      Resume?             @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  interviews  InterviewRecord[]
+  events      ApplicationEvent[]
+
+  @@index([userId, status, updatedAt])
+  @@index([jobPostingId, userId])
+}
+
+model ApplicationEvent {
+  id            String               @id @default(cuid())
+  userId        String
+  applicationId String
+  kind          ApplicationEventKind @default(MANUAL_NOTE)
+  title         String
+  detail        String
+  nextStep      String?
+  reminderAt    DateTime?
+  createdAt     DateTime             @default(now())
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   Application          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model GeminiConfig {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  encryptedApiKey   String
+  maskedApiKey      String
+  selectedModel     String
+  availableModelsJson String
+  lastValidatedAt   DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GenerationRun {
+  id            String   @id @default(cuid())
+  userId        String
+  taskType      String
+  model         String
+  promptHash    String
+  inputSnapshot String
+  outputJson    String
+  latencyMs     Int
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, taskType, createdAt])
+}
+
+model MockInterviewSession {
+  id                  String                     @id @default(cuid())
+  userId              String
+  jobPostingId        String
+  status              MockInterviewSessionStatus @default(DRAFT)
+  language            String                     @default("zh-CN")
+  targetLevel         String
+  questionCount       Int
+  overallScore        Int?
+  dimensionScoresJson String?
+  summaryJson         String?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  user                User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPosting          JobPosting                 @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  questions           MockInterviewQuestion[]
+  turns               MockInterviewTurn[]
+
+  @@index([userId, status, updatedAt])
+  @@index([jobPostingId, userId])
+}
+
+model MockInterviewQuestion {
+  id         String                        @id @default(cuid())
+  sessionId  String
+  order      Int
+  category   MockInterviewQuestionCategory
+  question   String
+  intent     String
+  difficulty String
+  createdAt  DateTime                      @default(now())
+  session    MockInterviewSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  turns      MockInterviewTurn[]
+
+  @@unique([sessionId, order])
+  @@index([sessionId, order])
+}
+
+model MockInterviewTurn {
+  id                  String               @id @default(cuid())
+  userId              String
+  sessionId           String
+  questionId          String
+  audioMimeType       String
+  audioDurationSec    Int?
+  transcript          String
+  score               Int?
+  dimensionScoresJson String?
+  feedbackJson        String?
+  answeredAt          DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session             MockInterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question            MockInterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionId])
+  @@index([sessionId, answeredAt])
+}
