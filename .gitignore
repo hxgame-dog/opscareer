@@ -6,3 +6,5 @@ coverage
 *.log
 prisma/dev.db
 prisma/dev.db-journal
+prisma/*.bak
+prisma/dev.db.pre-*
