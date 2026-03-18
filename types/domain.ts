@@ -146,6 +146,16 @@ export interface ResumeDraft {
   }>;
 }
 
+export interface ResumeImportPreview {
+  filename: string;
+  title: string;
+  language: Language;
+  theme: ResumeTheme;
+  markdown: string;
+  profile: ProfileInput;
+  draft: ResumeDraft;
+}
+
 export interface ResumeThemeDefinition {
   id: ResumeTheme;
   name: string;

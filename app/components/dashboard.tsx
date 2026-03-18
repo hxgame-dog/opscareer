@@ -16,6 +16,7 @@ import {
   MockInterviewSession,
   ProfileInput,
   ResumeDiffResult,
+  ResumeImportPreview,
   ResumeTheme
 } from '@/types/domain';
 import { Sidebar } from '@/app/components/layout/sidebar';
@@ -166,10 +167,14 @@ async function callApi<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export function Dashboard({ user }: DashboardProps) {
+  const NOTEBOOK_BREAKPOINT = 1360;
+  const notebookHeavyViews: WorkspaceView[] = ['resumes', 'jobs', 'mock', 'applications', 'interviews'];
+  const previousNotebookMatchRef = useRef<boolean | null>(null);
   const [apiKey, setApiKey] = useState('');
   const [activeView, setActiveView] = useState<WorkspaceView>('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(true);
+  const [isNotebookLayout, setIsNotebookLayout] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [flash, setFlash] = useState<{ text: string; tone: 'success' | 'error' | 'info' } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -193,6 +198,7 @@ export function Dashboard({ user }: DashboardProps) {
   const [activeTheme, setActiveTheme] = useState<ResumeTheme>('CLASSIC');
   const [resumeLanguage, setResumeLanguage] = useState<Language>('zh-CN');
   const [resumeGroups, setResumeGroups] = useState<ResumeHistoryGroup[]>([]);
+  const [resumeImportPreview, setResumeImportPreview] = useState<ResumeImportPreview | null>(null);
   const [jdText, setJdText] = useState(JSON.stringify(DEFAULT_JD, null, 2));
   const [jdLibrary, setJdLibrary] = useState<JobPostingRecord[]>([]);
   const [selectedJobPosting, setSelectedJobPosting] = useState<JobPostingRecord | null>(null);
@@ -295,15 +301,15 @@ export function Dashboard({ user }: DashboardProps) {
   const pendingMockEvaluationTurn =
     selectedMockInterview?.turns.find((turn) => turn.evaluation === null && turn.transcript.trim()) ?? null;
   const navigation = [
-    { id: 'home', label: '首页', hint: 'Overview' },
-    { id: 'profile', label: '个人档案', hint: 'Profile' },
-    { id: 'resumes', label: '简历中心', hint: 'Resumes' },
-    { id: 'jobs', label: 'JD 库', hint: 'Job postings' },
-    { id: 'mock', label: '模拟面试', hint: 'Mock interview' },
-    { id: 'applications', label: '投递看板', hint: 'Applications' },
-    { id: 'interviews', label: '面试记录', hint: 'Interviews' },
-    { id: 'settings', label: 'Gemini 设置', hint: 'Settings' }
-  ] as const satisfies Array<{ id: WorkspaceView; label: string; hint: string }>;
+    { id: 'home', label: '首页', hint: 'Overview', icon: 'home' },
+    { id: 'profile', label: '个人档案', hint: 'Profile', icon: 'profile' },
+    { id: 'resumes', label: '简历中心', hint: 'Resumes', icon: 'resume' },
+    { id: 'jobs', label: 'JD 库', hint: 'Job postings', icon: 'job' },
+    { id: 'mock', label: '模拟面试', hint: 'Mock interview', icon: 'mock' },
+    { id: 'applications', label: '投递看板', hint: 'Applications', icon: 'application' },
+    { id: 'interviews', label: '面试记录', hint: 'Interviews', icon: 'interview' },
+    { id: 'settings', label: 'Gemini 设置', hint: 'Settings', icon: 'settings' }
+  ] as const satisfies Array<{ id: WorkspaceView; label: string; hint: string; icon: 'home' | 'profile' | 'resume' | 'job' | 'mock' | 'application' | 'interview' | 'settings' }>;
   const viewMeta: Record<WorkspaceView, { title: string; description: string }> = {
     home: { title: '首页', description: '今天最值得关注的内容、最近活动和快捷入口。' },
     profile: { title: '个人档案', description: '维护你的基础信息、经历与生成偏好。' },
@@ -340,6 +346,48 @@ export function Dashboard({ user }: DashboardProps) {
     : latestLog.includes('完成') || latestLog.includes('成功') || latestLog.includes('已')
       ? 'success'
       : 'info');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const media = window.matchMedia(`(max-width: ${NOTEBOOK_BREAKPOINT}px)`);
+    const syncLayout = (matches: boolean) => {
+      setIsNotebookLayout(matches);
+      if (previousNotebookMatchRef.current === null) {
+        previousNotebookMatchRef.current = matches;
+        if (matches) setDetailOpen(false);
+        return;
+      }
+      if (matches && previousNotebookMatchRef.current !== matches) {
+        setDetailOpen(false);
+      }
+      previousNotebookMatchRef.current = matches;
+    };
+
+    syncLayout(media.matches);
+    const handleChange = (event: MediaQueryListEvent) => syncLayout(event.matches);
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (isNotebookLayout && notebookHeavyViews.includes(activeView)) {
+      setDetailOpen(false);
+    }
+  }, [activeView, isNotebookLayout]);
+
+  useEffect(() => {
+    if (!isNotebookLayout || !detailOpen || typeof window === 'undefined') return undefined;
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDetailOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [detailOpen, isNotebookLayout]);
 
   const onLoadApplications = async (view = applicationView, filters = applicationFilters) => {
     try {
@@ -1200,6 +1248,108 @@ export function Dashboard({ user }: DashboardProps) {
     });
   };
 
+  const onSaveResumeContent = async () => {
+    await withBusy('save-resume-content', async () => {
+      try {
+        if (!resumeId || !resumeMarkdown.trim()) {
+          appendLog('请先载入一份简历并补充正文');
+          return;
+        }
+        const data = await callApi<{ id: string; title: string; markdown: string }>(`/api/resume/${resumeId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            title: resumeTitle.trim() || undefined,
+            markdown: resumeMarkdown
+          })
+        });
+        setResumeTitle(data.title);
+        setResumeMarkdown(data.markdown);
+        appendLog('简历正文已保存');
+        await onLoadResumes();
+      } catch (err) {
+        appendLog(`保存简历正文失败: ${(err as Error).message}`);
+      }
+    });
+  };
+
+  const onImportResumeFile = async (file: File) => {
+    await withBusy('preview-resume-import', async () => {
+      try {
+        const formData = new FormData();
+        formData.set('file', file);
+        formData.set('theme', activeTheme);
+        formData.set('language', resumeLanguage);
+
+        const response = await fetch('/api/resume/import/preview', {
+          method: 'POST',
+          body: formData
+        });
+        const json = (await response.json()) as {
+          success: boolean;
+          data?: ResumeImportPreview;
+          error?: string;
+        };
+        if (!json.success || !json.data) {
+          throw new Error(json.error ?? '导入失败');
+        }
+
+        setResumeImportPreview(json.data);
+        setActiveView('resumes');
+        setDetailOpen(true);
+        appendLog(`已识别导入预览: ${file.name}`);
+      } catch (err) {
+        appendLog(`简历导入失败: ${(err as Error).message}`);
+      }
+    });
+  };
+
+  const onChangeResumeImportPreview = (patch: Partial<ResumeImportPreview>) => {
+    setResumeImportPreview((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
+  const onConfirmResumeImport = async () => {
+    await withBusy('confirm-resume-import', async () => {
+      try {
+        if (!resumeImportPreview) {
+          appendLog('当前没有可确认的导入预览');
+          return;
+        }
+
+        const data = await callApi<{
+          resumeId: string;
+          profileId: string;
+          title: string;
+          markdown: string;
+          theme: ResumeTheme;
+          draft: unknown;
+          profile: ProfileInput;
+        }>('/api/resume/import', {
+          method: 'POST',
+          body: JSON.stringify(resumeImportPreview)
+        });
+
+        setResumeId(data.resumeId);
+        setResumeTitle(data.title);
+        setResumeMarkdown(data.markdown);
+        setActiveTheme(data.theme);
+        setResumeLanguage(resumeImportPreview.language);
+        syncProfileDraft(data.profile);
+        setResumeImportPreview(null);
+        setActiveView('resumes');
+        setDetailOpen(true);
+        appendLog(`简历导入完成: ${data.title}`);
+        await onLoadResumes();
+      } catch (err) {
+        appendLog(`确认导入失败: ${(err as Error).message}`);
+      }
+    });
+  };
+
+  const onCancelResumeImport = () => {
+    setResumeImportPreview(null);
+    appendLog('已取消本次简历导入预览');
+  };
+
   const onDeleteResume = async (id: string) => {
     const version = allResumeVersions.find((item) => item.id === id);
     setConfirmDialog({
@@ -1645,7 +1795,13 @@ export function Dashboard({ user }: DashboardProps) {
   })();
 
   return (
-    <main className="workspace-shell">
+    <main
+      className={[
+        'workspace-shell',
+        detailOpen ? 'workspace-shell-detail-open' : 'workspace-shell-detail-collapsed',
+        isNotebookLayout ? 'workspace-shell-notebook' : ''
+      ].join(' ')}
+    >
       <Sidebar
         activeView={activeView}
         sidebarOpen={sidebarOpen}
@@ -1663,7 +1819,6 @@ export function Dashboard({ user }: DashboardProps) {
           viewMeta={viewMeta}
           user={user}
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-          hasContext={hasContext}
           contextOpen={detailOpen}
           onToggleContext={() => setDetailOpen((prev) => !prev)}
           onLogout={onLogout}
@@ -1744,6 +1899,8 @@ export function Dashboard({ user }: DashboardProps) {
             onGenerateResume={onGenerateResume}
             onOptimizeResume={onOptimizeResume}
             onRenameResume={onRenameResume}
+            onSaveResumeContent={onSaveResumeContent}
+            onImportResumeFile={(file) => void onImportResumeFile(file)}
             onApplyTheme={onApplyTheme}
             onSelectResumeVersion={(id) => void onSelectResumeVersion(id)}
             onDeleteResume={(id) => void onDeleteResume(id)}
@@ -1752,6 +1909,13 @@ export function Dashboard({ user }: DashboardProps) {
             isGeneratingResume={isBusy('generate-resume')}
             isOptimizingResume={isBusy('optimize-resume')}
             isRenamingResume={isBusy('rename-resume')}
+            isSavingResumeContent={isBusy('save-resume-content')}
+            isImportingResumeFile={isBusy('preview-resume-import')}
+            resumeImportPreview={resumeImportPreview}
+            onChangeResumeImportPreview={onChangeResumeImportPreview}
+            onConfirmResumeImport={() => void onConfirmResumeImport()}
+            onCancelResumeImport={onCancelResumeImport}
+            isConfirmingResumeImport={isBusy('confirm-resume-import')}
             isLoadingDiff={isBusy('load-diff')}
           />
         ) : null}
@@ -1881,11 +2045,20 @@ export function Dashboard({ user }: DashboardProps) {
         ) : null}
       </div>
 
+      {isNotebookLayout && detailOpen ? (
+        <button
+          type="button"
+          className="workspace-detail-backdrop"
+          aria-label="关闭右侧详情"
+          onClick={() => setDetailOpen(false)}
+        />
+      ) : null}
+
       <DetailPanel
         title={detailPanel.title}
         body={detailPanel.body}
-        isOpen={!hasContext || detailOpen}
-        onClose={hasContext ? () => setDetailOpen(false) : undefined}
+        isOpen={detailOpen}
+        onClose={() => setDetailOpen(false)}
       />
       <ConfirmDialog
         open={!!confirmDialog}

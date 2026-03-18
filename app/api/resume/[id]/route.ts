@@ -1,11 +1,13 @@
 import { requireCurrentUser } from '@/lib/auth-session';
 import { prisma } from '@/lib/db';
+import { markdownToResumeDraft } from '@/lib/markdown-parser';
 import { fail, ok } from '@/lib/response';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
 const UpdateSchema = z.object({
-  title: z.string().min(1).max(120)
+  title: z.string().min(1).max(120).optional(),
+  markdown: z.string().min(1).optional()
 });
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -60,12 +62,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const updated = await prisma.resume.update({
       where: { id },
-      data: { title: body.title }
+      data: {
+        ...(body.title ? { title: body.title } : {}),
+        ...(body.markdown
+          ? {
+              markdown: body.markdown,
+              contentJson: JSON.stringify(markdownToResumeDraft(body.markdown))
+            }
+          : {})
+      }
     });
 
     return ok({
       id: updated.id,
-      title: updated.title
+      title: updated.title,
+      markdown: updated.markdown
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

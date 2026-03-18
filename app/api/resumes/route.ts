@@ -1,5 +1,6 @@
 import { requireCurrentUser } from '@/lib/auth-session';
 import { prisma } from '@/lib/db';
+import { toUserErrorMessage } from '@/lib/errors';
 import { buildResumeHistoryGroups } from '@/lib/resume-history';
 import { fail, ok } from '@/lib/response';
 
@@ -30,7 +31,7 @@ export async function GET() {
       groups: buildResumeHistoryGroups(resumes)
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = toUserErrorMessage(error);
     return fail(message, message === 'Authentication required.' ? 401 : 400);
   }
 }

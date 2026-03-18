@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { requireCurrentUser } from '@/lib/auth-session';
 import { prisma } from '@/lib/db';
+import { toUserErrorMessage } from '@/lib/errors';
 import { fail, ok } from '@/lib/response';
 
 const CreateSchema = z.object({
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     return ok(jobPostings);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = toUserErrorMessage(error);
     return fail(message, message === 'Authentication required.' ? 401 : 400);
   }
 }
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     return ok(created, 201);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = toUserErrorMessage(error);
     return fail(message, message === 'Authentication required.' ? 401 : 400);
   }
 }

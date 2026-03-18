@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { SectionHeader } from '@/app/components/ui/section-header';
 import { getMockInterviewCategoryLabel } from '@/lib/mock-interview';
@@ -62,18 +65,20 @@ export function MockInterviewView({
   onOpenMockInterview,
   isStartingMockInterview
 }: MockInterviewViewProps) {
+  const [reviewTab, setReviewTab] = useState<'summary' | 'history'>('summary');
+
   return (
     <section className="content-stack">
-      <article className="panel">
+      <article className="panel panel-tight">
         <SectionHeader
           eyebrow="Mock Interview"
           title="开始一场模拟面试"
           actions={
-            <div className="inline">
-            <button onClick={onStartMockInterview} disabled={isStartingMockInterview}>
+            <div className="inline compact-actions">
+            <button className="button-compact" onClick={onStartMockInterview} disabled={isStartingMockInterview}>
               {isStartingMockInterview ? '创建中...' : '开始模拟'}
             </button>
-            <button className="secondary" onClick={onLoadMockInterviews}>
+            <button className="secondary button-compact" onClick={onLoadMockInterviews}>
               刷新历史
             </button>
             </div>
@@ -131,7 +136,7 @@ export function MockInterviewView({
       </article>
 
       <div className="mock-view-layout">
-        <article className="panel mock-runner-panel">
+        <article className="panel panel-tight mock-runner-panel">
           <SectionHeader eyebrow="Runner" title="当前答题区" />
           {selectedMockInterview ? (
             <>
@@ -146,13 +151,13 @@ export function MockInterviewView({
                   </div>
                   <p>{currentMockQuestion.question}</p>
                   <div className="small">考察意图: {currentMockQuestion.intent}</div>
-                  <div className="inline">
-                    <button onClick={onToggleMockInterviewRecording} disabled={isSubmittingMockTurn}>
+                  <div className="inline compact-actions">
+                    <button className="button-compact" onClick={onToggleMockInterviewRecording} disabled={isSubmittingMockTurn}>
                       {isRecordingMockInterview ? '结束录音并提交' : '开始录音回答'}
                     </button>
                     {pendingMockEvaluationTurn?.questionId === currentMockQuestion.id ? (
                       <button
-                        className="warn"
+                        className="warn button-compact"
                         onClick={() => onSubmitMockInterviewAnswer(currentMockQuestion.id, true)}
                         disabled={isSubmittingMockTurn}
                       >
@@ -186,49 +191,72 @@ export function MockInterviewView({
           )}
         </article>
 
-        <article className="panel mock-review-panel">
+        <article className="panel panel-tight mock-review-panel">
           <SectionHeader eyebrow="Review" title="会话回顾" />
-          {selectedMockInterview?.summary ? (
-            <>
-              <div className="mock-score-grid">
-                <div className="item">
-                  <strong>总分</strong>
-                  <div className="mock-score">{selectedMockInterview.summary.overallScore}</div>
-                </div>
-                <div className="item">
-                  <strong>表现等级</strong>
-                  <div className="small">{selectedMockInterview.summary.performanceLevel}</div>
-                </div>
-                <div className="item">
-                  <strong>优势</strong>
-                  <div className="small">{selectedMockInterview.summary.topStrengths.join('；') || '无'}</div>
-                </div>
-                <div className="item">
-                  <strong>风险点</strong>
-                  <div className="small">{selectedMockInterview.summary.topRisks.join('；') || '无'}</div>
-                </div>
-              </div>
-              <button className="warn" onClick={onSaveMockInterviewToTracker}>
-                保存到 Interview Tracker
-              </button>
-            </>
-          ) : (
-            <EmptyState title="还没有整场总评" description="完成全部题目后，这里会展示总分、亮点和风险点。" />
-          )}
-          <div className="list" style={{ marginTop: 12 }}>
-            {mockInterviewSessions.map((session) => (
-              <button key={session.id} className="item card-button" onClick={() => onOpenMockInterview(session.id)}>
-                <strong>
-                  {session.company} · {session.role}
-                </strong>
-                <div className="small">
-                  {session.status} · {session.answeredCount}/{session.questionCount} 题 ·{' '}
-                  {session.overallScore !== null ? `总分 ${session.overallScore}` : '尚未完成'}
-                </div>
-              </button>
-            ))}
-            {mockInterviewSessions.length === 0 ? <EmptyState title="暂无模拟面试记录" description="开始第一场模拟面试后，历史会沉淀在这里。" /> : null}
+          <div className="tool-tabs mock-review-tabs">
+            <button
+              className={`tool-tab ${reviewTab === 'summary' ? 'tool-tab-active' : ''}`}
+              onClick={() => setReviewTab('summary')}
+              type="button"
+            >
+              总评
+            </button>
+            <button
+              className={`tool-tab ${reviewTab === 'history' ? 'tool-tab-active' : ''}`}
+              onClick={() => setReviewTab('history')}
+              type="button"
+            >
+              历史
+            </button>
           </div>
+          {reviewTab === 'summary' ? (
+            <div className="tool-tab-panel">
+              {selectedMockInterview?.summary ? (
+                <>
+                  <div className="mock-score-grid">
+                    <div className="item">
+                      <strong>总分</strong>
+                      <div className="mock-score">{selectedMockInterview.summary.overallScore}</div>
+                    </div>
+                    <div className="item">
+                      <strong>表现等级</strong>
+                      <div className="small">{selectedMockInterview.summary.performanceLevel}</div>
+                    </div>
+                    <div className="item">
+                      <strong>优势</strong>
+                      <div className="small">{selectedMockInterview.summary.topStrengths.join('；') || '无'}</div>
+                    </div>
+                    <div className="item">
+                      <strong>风险点</strong>
+                      <div className="small">{selectedMockInterview.summary.topRisks.join('；') || '无'}</div>
+                    </div>
+                  </div>
+                  <button className="warn button-compact" onClick={onSaveMockInterviewToTracker}>
+                    保存到 Interview Tracker
+                  </button>
+                </>
+              ) : (
+                <EmptyState title="还没有整场总评" description="完成全部题目后，这里会展示总分、亮点和风险点。" />
+              )}
+            </div>
+          ) : (
+            <div className="tool-tab-panel">
+              <div className="list">
+                {mockInterviewSessions.map((session) => (
+                  <button key={session.id} className="item card-button" onClick={() => onOpenMockInterview(session.id)}>
+                    <strong>
+                      {session.company} · {session.role}
+                    </strong>
+                    <div className="small">
+                      {session.status} · {session.answeredCount}/{session.questionCount} 题 ·{' '}
+                      {session.overallScore !== null ? `总分 ${session.overallScore}` : '尚未完成'}
+                    </div>
+                  </button>
+                ))}
+                {mockInterviewSessions.length === 0 ? <EmptyState title="暂无模拟面试记录" description="开始第一场模拟面试后，历史会沉淀在这里。" /> : null}
+              </div>
+            </div>
+          )}
         </article>
       </div>
     </section>

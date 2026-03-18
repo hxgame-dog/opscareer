@@ -60,7 +60,7 @@ export function InterviewsView({
   return (
     <section className="content-stack">
       <div className="interviews-layout">
-        <article className="panel interviews-form-panel">
+        <article className="panel panel-tight interviews-form-panel">
           <SectionHeader eyebrow="Interview Tracker" title="记录面试" />
           <label>Application ID</label>
           <input
@@ -76,17 +76,17 @@ export function InterviewsView({
           <input value={interviewForm.roundName} onChange={(e) => onInterviewFormChange({ ...interviewForm, roundName: e.target.value })} />
           <label>面试记录</label>
           <textarea value={interviewForm.notes} onChange={(e) => onInterviewFormChange({ ...interviewForm, notes: e.target.value })} />
-          <div className="inline">
-            <button onClick={onCreateInterview} disabled={isCreatingInterview}>
+          <div className="inline compact-actions">
+            <button className="button-compact" onClick={onCreateInterview} disabled={isCreatingInterview}>
               {isCreatingInterview ? '保存中...' : '保存记录'}
             </button>
-            <button className="secondary" onClick={onLoadInterviews}>
+            <button className="secondary button-compact" onClick={onLoadInterviews}>
               刷新列表
             </button>
           </div>
         </article>
 
-        <article className="panel interviews-list-panel">
+        <article className="panel panel-tight interviews-list-panel">
           <SectionHeader eyebrow="Records" title="面试记录列表" />
           <div className="grid-3">
             <div>
@@ -120,7 +120,7 @@ export function InterviewsView({
               />
             </div>
           </div>
-          <button className="secondary" onClick={onLoadInterviews}>
+          <button className="secondary button-compact" onClick={onLoadInterviews}>
             应用筛选
           </button>
           <div className="list" style={{ marginTop: 10 }}>
@@ -132,7 +132,7 @@ export function InterviewsView({
                 <div className="small">轮次: {item.roundName} | 状态: {item.status}</div>
                 <div>{item.notes}</div>
                 <div className="small">总结: {item.summary ?? '未生成'}</div>
-                <div className="inline">
+                <div className="inline compact-actions">
                   <select value={item.status} onChange={(e) => onUpdateInterviewStatus(item.id, e.target.value as InterviewRecord['status'])}>
                     <option value="APPLIED">APPLIED</option>
                     <option value="SCREENING">SCREENING</option>
@@ -142,7 +142,7 @@ export function InterviewsView({
                     <option value="REJECTED">REJECTED</option>
                     <option value="WITHDRAWN">WITHDRAWN</option>
                   </select>
-                  <button className="warn" onClick={() => onGenSummary(item.id)}>
+                  <button className="warn button-compact" onClick={() => onGenSummary(item.id)}>
                     生成复盘
                   </button>
                 </div>

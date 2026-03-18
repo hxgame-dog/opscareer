@@ -69,34 +69,34 @@ export function JobsView({
 
   return (
     <section className="content-stack">
-      <article className="panel">
+      <article className="panel panel-tight">
         <SectionHeader
           eyebrow="Job Database"
           title="JD 库"
           actions={
-            <div className="inline">
-            <button className="secondary" onClick={onSearch}>
+            <div className="inline compact-actions">
+            <button className="secondary button-compact" onClick={onSearch}>
               刷新列表
             </button>
-            <button className="ghost" onClick={onToggleSavedOnly}>
+            <button className="ghost button-compact" onClick={onToggleSavedOnly}>
               {savedOnly ? '只看收藏中' : '查看全部'}
             </button>
             </div>
           }
         />
-        <div className="jd-toolbar">
+        <div className="jd-toolbar jd-toolbar-compact">
           <div className="jd-toolbar-search">
             <label>搜索</label>
             <input value={jdSearch} onChange={(e) => onJdSearchChange(e.target.value)} placeholder="公司 / 岗位 / 关键词" />
           </div>
           <div className="jd-toolbar-actions">
-            <button onClick={onOptimizeResume} disabled={isOptimizingResume}>
-              {isOptimizingResume ? '诊断中...' : '简历优化 + 诊断'}
+            <button className="button-compact" onClick={onOptimizeResume} disabled={isOptimizingResume}>
+              {isOptimizingResume ? '诊断中...' : '简历优化'}
             </button>
-            <button className="secondary" onClick={onPrepareInterview} disabled={isPreparingInterview}>
-              {isPreparingInterview ? '生成中...' : '生成面试建议'}
+            <button className="secondary button-compact" onClick={onPrepareInterview} disabled={isPreparingInterview}>
+              {isPreparingInterview ? '生成中...' : '面试建议'}
             </button>
-            <button className="warn" onClick={onSaveCurrentJd} disabled={isSavingCurrentJd}>
+            <button className="warn button-compact" onClick={onSaveCurrentJd} disabled={isSavingCurrentJd}>
               {isSavingCurrentJd ? '保存中...' : '收藏当前 JD'}
             </button>
           </div>
@@ -105,54 +105,70 @@ export function JobsView({
         <div className="db-table-wrap">
           <div className="db-table jd-table">
             <div className="db-row db-row-head">
-              <div>公司 / 岗位</div>
-              <div>语言</div>
-              <div>来源</div>
-              <div>收藏</div>
-              <div>最近更新</div>
-              <div>操作</div>
+              <div className="jd-col-primary">公司 / 岗位</div>
+              <div className="jd-col-language">语言</div>
+              <div className="jd-col-source">来源</div>
+              <div className="jd-col-saved">收藏</div>
+              <div className="jd-col-updated">最近更新</div>
+              <div className="jd-col-actions">操作</div>
             </div>
             {jdLibrary.map((posting) => (
-              <button
+              <div
                 key={posting.id}
                 className={`db-row db-row-button ${selectedJobPosting?.id === posting.id ? 'db-row-active' : ''}`}
+                role="button"
+                tabIndex={0}
                 onClick={() => onOpenJobPostingDetail(posting.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onOpenJobPostingDetail(posting.id);
+                  }
+                }}
               >
-                <div>
+                <div className="jd-col-primary jd-primary-cell">
                   <strong>{posting.company}</strong>
                   <div className="small">{posting.role}</div>
+                  <div className="small jd-row-meta">
+                    {posting.language === 'zh-CN' ? '中文' : 'English'} · {posting.source} · {formatTime(posting.updatedAt)}
+                  </div>
                 </div>
-                <div>{posting.language === 'zh-CN' ? '中文' : 'English'}</div>
-                <div>{posting.source}</div>
-                <div>
+                <div className="jd-col-language">{posting.language === 'zh-CN' ? '中文' : 'English'}</div>
+                <div className="jd-col-source">{posting.source}</div>
+                <div className="jd-col-saved">
                   <StatusBadge tone={posting.saved ? 'success' : 'default'}>{posting.saved ? '已收藏' : '未收藏'}</StatusBadge>
                 </div>
-                <div className="small">{formatTime(posting.updatedAt)}</div>
-                <div className="db-actions" onClick={(event) => event.stopPropagation()}>
-                  <button className="secondary" onClick={() => onCreateApplicationFromJd(posting)}>
+                <div className="small jd-col-updated">{formatTime(posting.updatedAt)}</div>
+                <div className="jd-col-actions db-actions db-actions-compact" onClick={(event) => event.stopPropagation()}>
+                  <button className="secondary button-compact" onClick={() => onCreateApplicationFromJd(posting)}>
                     投递
                   </button>
-                  <button className="ghost" onClick={() => onOptimizeWithJobPosting(posting)}>
+                  <button className="ghost button-compact" onClick={() => onOptimizeWithJobPosting(posting)}>
                     优化
                   </button>
-                  <button className="ghost" onClick={() => onPrepareInterviewWithJobPosting(posting)}>
-                    面试题
-                  </button>
-                  <button className="warn" onClick={() => onStartMockInterviewWithJobPosting(posting)}>
-                    模拟
-                  </button>
-                  <button className="ghost" onClick={() => onToggleSavedJobPosting(posting)}>
-                    {posting.saved ? '取消收藏' : '收藏'}
-                  </button>
+                  <details className="row-actions-menu" onClick={(event) => event.stopPropagation()}>
+                    <summary className="ghost button-compact row-actions-trigger">更多</summary>
+                    <div className="row-actions-popover">
+                      <button className="ghost button-compact" onClick={() => onPrepareInterviewWithJobPosting(posting)}>
+                        面试题
+                      </button>
+                      <button className="warn button-compact" onClick={() => onStartMockInterviewWithJobPosting(posting)}>
+                        模拟
+                      </button>
+                      <button className="ghost button-compact" onClick={() => onToggleSavedJobPosting(posting)}>
+                        {posting.saved ? '取消收藏' : '收藏'}
+                      </button>
+                    </div>
+                  </details>
                 </div>
-              </button>
+              </div>
             ))}
             {jdLibrary.length === 0 ? <EmptyState title="暂无 JD 收藏记录" description="保存一条岗位描述后，这里会变成你的 JD 数据库。" /> : null}
           </div>
         </div>
       </article>
 
-      <article className="panel jobs-editor-panel">
+      <article className="panel panel-tight jobs-editor-panel">
         <SectionHeader eyebrow="Editor" title="JD 编辑器" />
         <label>JD JSON</label>
         <textarea value={jdText} onChange={(e) => onJdTextChange(e.target.value)} />

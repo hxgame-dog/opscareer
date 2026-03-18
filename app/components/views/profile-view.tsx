@@ -48,7 +48,7 @@ export function ProfileView({
 }: ProfileViewProps) {
   return (
     <section className="content-stack">
-      <article className="panel">
+      <article className="panel panel-tight">
         <SectionHeader eyebrow="Profile Settings" title="基础配置" />
         <div className="grid-3">
           <div>
@@ -69,16 +69,16 @@ export function ProfileView({
         </div>
       </article>
 
-      <article className="panel">
+      <article className="panel panel-tight">
         <SectionHeader
           eyebrow="Profile Form"
           title="个人档案"
           actions={
-            <div className="inline">
-            <button className="ghost" onClick={onToggleProfileJson}>
+            <div className="inline compact-actions">
+            <button className="ghost button-compact" onClick={onToggleProfileJson}>
               {showProfileJson ? '收起 JSON' : '高级 JSON'}
             </button>
-            <button className="secondary" onClick={onResetProfile}>
+            <button className="secondary button-compact" onClick={onResetProfile}>
               重置示例
             </button>
             </div>
@@ -142,10 +142,10 @@ export function ProfileView({
           </section>
 
           <section className="profile-section-card">
-            <div className="database-header">
+            <div className="database-header database-header-compact">
               <h3>工作经历</h3>
               <button
-                className="secondary"
+                className="secondary button-compact"
                 onClick={() =>
                   onProfileChange({
                     ...profile,
@@ -255,7 +255,7 @@ export function ProfileView({
                     </div>
                   </div>
                   <button
-                    className="danger"
+                    className="danger button-compact"
                     onClick={() =>
                       onProfileChange({
                         ...profile,
@@ -272,10 +272,10 @@ export function ProfileView({
           </section>
 
           <section className="profile-section-card">
-            <div className="database-header">
+            <div className="database-header database-header-compact">
               <h3>项目经历</h3>
               <button
-                className="secondary"
+                className="secondary button-compact"
                 onClick={() =>
                   onProfileChange({
                     ...profile,
@@ -343,7 +343,7 @@ export function ProfileView({
                     </div>
                   </div>
                   <button
-                    className="danger"
+                    className="danger button-compact"
                     onClick={() =>
                       onProfileChange({
                         ...profile,
@@ -375,10 +375,10 @@ export function ProfileView({
             </section>
 
             <section className="profile-section-card">
-              <div className="database-header">
+              <div className="database-header database-header-compact">
                 <h3>教育经历</h3>
                 <button
-                  className="secondary"
+                  className="secondary button-compact"
                   onClick={() =>
                     onProfileChange({
                       ...profile,
@@ -434,19 +434,19 @@ export function ProfileView({
             <label>Profile JSON</label>
             <textarea value={profileText} onChange={(e) => onProfileTextChange(e.target.value)} />
             {profileJsonError ? <div className="form-error">{profileJsonError}</div> : null}
-            <div className="inline">
-              <button className="secondary" onClick={onApplyProfileJson}>
+            <div className="inline compact-actions">
+              <button className="secondary button-compact" onClick={onApplyProfileJson}>
                 从 JSON 应用到表单
               </button>
             </div>
           </div>
         ) : null}
 
-        <div className="inline" style={{ marginTop: 16 }}>
-          <button onClick={onGenerateResume} disabled={isGeneratingResume}>
+        <div className="inline compact-actions" style={{ marginTop: 16 }}>
+          <button className="button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
             {isGeneratingResume ? '生成中...' : '用主档生成简历'}
           </button>
-          <button className="secondary" onClick={onGoResumes}>
+          <button className="secondary button-compact" onClick={onGoResumes}>
             去简历中心继续编辑
           </button>
         </div>

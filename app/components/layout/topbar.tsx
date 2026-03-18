@@ -16,7 +16,6 @@ type TopbarProps = {
     email: string;
   };
   onToggleSidebar: () => void;
-  hasContext: boolean;
   contextOpen: boolean;
   onToggleContext: () => void;
   onLogout: () => void;
@@ -27,7 +26,6 @@ export function Topbar({
   viewMeta,
   user,
   onToggleSidebar,
-  hasContext,
   contextOpen,
   onToggleContext,
   onLogout
@@ -39,11 +37,9 @@ export function Topbar({
           <button className="ghost sidebar-toggle" onClick={onToggleSidebar}>
             菜单
           </button>
-          {hasContext ? (
-            <button className="ghost context-toggle" onClick={onToggleContext}>
-              {contextOpen ? '收起详情' : '打开详情'}
-            </button>
-          ) : null}
+          <button className="ghost context-toggle" onClick={onToggleContext}>
+            {contextOpen ? '收起右栏' : '展开右栏'}
+          </button>
         </div>
         <p className="eyebrow">Notion-style workspace</p>
         <h1>{viewMeta[activeView].title}</h1>
