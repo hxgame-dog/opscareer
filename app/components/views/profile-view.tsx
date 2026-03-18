@@ -1,4 +1,7 @@
-import { SectionHeader } from '@/app/components/ui/section-header';
+import { ActionBar } from '@/app/components/ui/action-bar';
+import { PageHeader } from '@/app/components/ui/page-header';
+import { PanelShell } from '@/app/components/ui/panel-shell';
+import { ResultCard } from '@/app/components/ui/result-card';
 import type { Language, ProfileInput } from '@/types/domain';
 
 type ProfileViewProps = {
@@ -47,44 +50,77 @@ export function ProfileView({
   isGeneratingResume
 }: ProfileViewProps) {
   return (
-    <section className="content-stack">
-      <article className="panel panel-tight">
-        <SectionHeader eyebrow="Profile Settings" title="基础配置" />
-        <div className="grid-3">
-          <div>
-            <label>输出语言</label>
-            <select value={resumeLanguage} onChange={(e) => onResumeLanguageChange(e.target.value as Language)}>
-              <option value="zh-CN">中文</option>
-              <option value="en-US">English</option>
-            </select>
-          </div>
-          <div>
-            <label>简历风格</label>
-            <input value={style} onChange={(e) => onStyleChange(e.target.value)} />
-          </div>
-          <div>
-            <label>目标级别</label>
-            <input value={targetLevel} onChange={(e) => onTargetLevelChange(e.target.value)} />
-          </div>
-        </div>
-      </article>
+    <section className="content-stack workspace-stage">
+      <PageHeader
+        eyebrow="Profile Base"
+        title="维护你的主档信息"
+        description="把基础资料、工作经历、项目和教育沉淀成一份可靠主档，后续所有简历生成和优化都从这里出发。"
+        accent="slate"
+        meta={
+          <>
+            <span className="timeline-tag">结构化建档</span>
+            <span className="timeline-tag">JSON 高级模式</span>
+            <span className="timeline-tag">生成联动</span>
+          </>
+        }
+        actions={
+          <ActionBar
+            left={
+              <div className="inline compact-actions">
+                <button onClick={onGenerateResume} disabled={isGeneratingResume}>
+                  {isGeneratingResume ? '生成中...' : '用主档生成简历'}
+                </button>
+                <button className="secondary" onClick={onGoResumes}>
+                  去简历中心
+                </button>
+              </div>
+            }
+            right={
+              <div className="inline compact-actions">
+                <button className="ghost" onClick={onToggleProfileJson}>
+                  {showProfileJson ? '收起 JSON' : '高级 JSON'}
+                </button>
+                <button className="secondary" onClick={onResetProfile}>
+                  重置示例
+                </button>
+              </div>
+            }
+          />
+        }
+      />
 
-      <article className="panel panel-tight">
-        <SectionHeader
-          eyebrow="Profile Form"
-          title="个人档案"
-          actions={
-            <div className="inline compact-actions">
-            <button className="ghost button-compact" onClick={onToggleProfileJson}>
-              {showProfileJson ? '收起 JSON' : '高级 JSON'}
-            </button>
-            <button className="secondary button-compact" onClick={onResetProfile}>
-              重置示例
-            </button>
+      <div className="dashboard-hero-grid">
+        <PanelShell eyebrow="Defaults" title="默认生成策略" subtitle="这些设置会直接影响后续简历生成、优化和模拟面试语言。">
+          <div className="grid-3">
+            <div>
+              <label>输出语言</label>
+              <select value={resumeLanguage} onChange={(event) => onResumeLanguageChange(event.target.value as Language)}>
+                <option value="zh-CN">中文</option>
+                <option value="en-US">English</option>
+              </select>
             </div>
-          }
-        />
+            <div>
+              <label>简历风格</label>
+              <input value={style} onChange={(event) => onStyleChange(event.target.value)} />
+            </div>
+            <div>
+              <label>目标级别</label>
+              <input value={targetLevel} onChange={(event) => onTargetLevelChange(event.target.value)} />
+            </div>
+          </div>
+        </PanelShell>
 
+        <PanelShell eyebrow="Snapshot" title="主档概览" subtitle="快速确认这份主档目前包含的核心材料。">
+          <div className="metrics-strip">
+            <ResultCard title="工作经历" subtitle={`${profile.experiences.length} 段`} />
+            <ResultCard title="项目经历" subtitle={`${profile.projects.length} 个`} />
+            <ResultCard title="技能" subtitle={`${profile.skills.length} 项`} />
+            <ResultCard title="教育" subtitle={`${profile.education.length} 段`} />
+          </div>
+        </PanelShell>
+      </div>
+
+      <PanelShell eyebrow="Profile Form" title="个人档案分段编辑" subtitle="用更高级的分段编辑方式维护主档，而不是直接面对一整个 JSON。">
         <div className="profile-sections">
           <section className="profile-section-card">
             <h3>基本信息</h3>
@@ -93,28 +129,36 @@ export function ProfileView({
                 <label>姓名</label>
                 <input
                   value={profile.basics.name}
-                  onChange={(e) => onProfileChange({ ...profile, basics: { ...profile.basics, name: e.target.value } })}
+                  onChange={(event) =>
+                    onProfileChange({ ...profile, basics: { ...profile.basics, name: event.target.value } })
+                  }
                 />
               </div>
               <div>
                 <label>邮箱</label>
                 <input
                   value={profile.basics.email}
-                  onChange={(e) => onProfileChange({ ...profile, basics: { ...profile.basics, email: e.target.value } })}
+                  onChange={(event) =>
+                    onProfileChange({ ...profile, basics: { ...profile.basics, email: event.target.value } })
+                  }
                 />
               </div>
               <div>
                 <label>电话</label>
                 <input
                   value={profile.basics.phone ?? ''}
-                  onChange={(e) => onProfileChange({ ...profile, basics: { ...profile.basics, phone: e.target.value } })}
+                  onChange={(event) =>
+                    onProfileChange({ ...profile, basics: { ...profile.basics, phone: event.target.value } })
+                  }
                 />
               </div>
               <div>
                 <label>地点</label>
                 <input
                   value={profile.basics.location ?? ''}
-                  onChange={(e) => onProfileChange({ ...profile, basics: { ...profile.basics, location: e.target.value } })}
+                  onChange={(event) =>
+                    onProfileChange({ ...profile, basics: { ...profile.basics, location: event.target.value } })
+                  }
                 />
               </div>
               <div>
@@ -123,10 +167,10 @@ export function ProfileView({
                   type="number"
                   min="0"
                   value={profile.basics.yearsOfExperience ?? 0}
-                  onChange={(e) =>
+                  onChange={(event) =>
                     onProfileChange({
                       ...profile,
-                      basics: { ...profile.basics, yearsOfExperience: Number(e.target.value) || 0 }
+                      basics: { ...profile.basics, yearsOfExperience: Number(event.target.value) || 0 }
                     })
                   }
                 />
@@ -135,7 +179,9 @@ export function ProfileView({
                 <label>个人摘要</label>
                 <textarea
                   value={profile.basics.summary}
-                  onChange={(e) => onProfileChange({ ...profile, basics: { ...profile.basics, summary: e.target.value } })}
+                  onChange={(event) =>
+                    onProfileChange({ ...profile, basics: { ...profile.basics, summary: event.target.value } })
+                  }
                 />
               </div>
             </div>
@@ -167,12 +213,12 @@ export function ProfileView({
                       <label>公司</label>
                       <input
                         value={experience.company}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             experiences: updateArrayItem(profile.experiences, index, {
                               ...experience,
-                              company: e.target.value
+                              company: event.target.value
                             })
                           })
                         }
@@ -182,12 +228,12 @@ export function ProfileView({
                       <label>岗位</label>
                       <input
                         value={experience.role}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             experiences: updateArrayItem(profile.experiences, index, {
                               ...experience,
-                              role: e.target.value
+                              role: event.target.value
                             })
                           })
                         }
@@ -197,12 +243,12 @@ export function ProfileView({
                       <label>开始时间</label>
                       <input
                         value={experience.start}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             experiences: updateArrayItem(profile.experiences, index, {
                               ...experience,
-                              start: e.target.value
+                              start: event.target.value
                             })
                           })
                         }
@@ -212,12 +258,12 @@ export function ProfileView({
                       <label>结束时间</label>
                       <input
                         value={experience.end ?? ''}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             experiences: updateArrayItem(profile.experiences, index, {
                               ...experience,
-                              end: e.target.value
+                              end: event.target.value
                             })
                           })
                         }
@@ -227,12 +273,15 @@ export function ProfileView({
                       <label>成就亮点（每行一条）</label>
                       <textarea
                         value={experience.achievements.join('\n')}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             experiences: updateArrayItem(profile.experiences, index, {
                               ...experience,
-                              achievements: e.target.value.split('\n').map((item) => item.trim()).filter(Boolean)
+                              achievements: event.target.value
+                                .split('\n')
+                                .map((item) => item.trim())
+                                .filter(Boolean)
                             })
                           })
                         }
@@ -242,12 +291,15 @@ export function ProfileView({
                       <label>技术栈（逗号分隔）</label>
                       <input
                         value={(experience.techStack ?? []).join(', ')}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             experiences: updateArrayItem(profile.experiences, index, {
                               ...experience,
-                              techStack: e.target.value.split(',').map((item) => item.trim()).filter(Boolean)
+                              techStack: event.target.value
+                                .split(',')
+                                .map((item) => item.trim())
+                                .filter(Boolean)
                             })
                           })
                         }
@@ -294,10 +346,10 @@ export function ProfileView({
                       <label>项目名</label>
                       <input
                         value={project.name}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
-                            projects: updateArrayItem(profile.projects, index, { ...project, name: e.target.value })
+                            projects: updateArrayItem(profile.projects, index, { ...project, name: event.target.value })
                           })
                         }
                       />
@@ -306,10 +358,10 @@ export function ProfileView({
                       <label>角色</label>
                       <input
                         value={project.role ?? ''}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
-                            projects: updateArrayItem(profile.projects, index, { ...project, role: e.target.value })
+                            projects: updateArrayItem(profile.projects, index, { ...project, role: event.target.value })
                           })
                         }
                       />
@@ -318,10 +370,10 @@ export function ProfileView({
                       <label>项目概述</label>
                       <textarea
                         value={project.summary}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
-                            projects: updateArrayItem(profile.projects, index, { ...project, summary: e.target.value })
+                            projects: updateArrayItem(profile.projects, index, { ...project, summary: event.target.value })
                           })
                         }
                       />
@@ -330,12 +382,15 @@ export function ProfileView({
                       <label>项目亮点（每行一条）</label>
                       <textarea
                         value={project.highlights.join('\n')}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           onProfileChange({
                             ...profile,
                             projects: updateArrayItem(profile.projects, index, {
                               ...project,
-                              highlights: e.target.value.split('\n').map((item) => item.trim()).filter(Boolean)
+                              highlights: event.target.value
+                                .split('\n')
+                                .map((item) => item.trim())
+                                .filter(Boolean)
                             })
                           })
                         }
@@ -365,10 +420,13 @@ export function ProfileView({
               <label>技能关键词（逗号分隔）</label>
               <input
                 value={profile.skills.join(', ')}
-                onChange={(e) =>
+                onChange={(event) =>
                   onProfileChange({
                     ...profile,
-                    skills: e.target.value.split(',').map((item) => item.trim()).filter(Boolean)
+                    skills: event.target.value
+                      .split(',')
+                      .map((item) => item.trim())
+                      .filter(Boolean)
                   })
                 }
               />
@@ -395,30 +453,30 @@ export function ProfileView({
                     <label>学校</label>
                     <input
                       value={education.school}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         onProfileChange({
                           ...profile,
-                          education: updateArrayItem(profile.education, index, { ...education, school: e.target.value })
+                          education: updateArrayItem(profile.education, index, { ...education, school: event.target.value })
                         })
                       }
                     />
                     <label>学位</label>
                     <input
                       value={education.degree}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         onProfileChange({
                           ...profile,
-                          education: updateArrayItem(profile.education, index, { ...education, degree: e.target.value })
+                          education: updateArrayItem(profile.education, index, { ...education, degree: event.target.value })
                         })
                       }
                     />
                     <label>专业</label>
                     <input
                       value={education.major ?? ''}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         onProfileChange({
                           ...profile,
-                          education: updateArrayItem(profile.education, index, { ...education, major: e.target.value })
+                          education: updateArrayItem(profile.education, index, { ...education, major: event.target.value })
                         })
                       }
                     />
@@ -432,7 +490,7 @@ export function ProfileView({
         {showProfileJson ? (
           <div className="profile-json-panel">
             <label>Profile JSON</label>
-            <textarea value={profileText} onChange={(e) => onProfileTextChange(e.target.value)} />
+            <textarea value={profileText} onChange={(event) => onProfileTextChange(event.target.value)} />
             {profileJsonError ? <div className="form-error">{profileJsonError}</div> : null}
             <div className="inline compact-actions">
               <button className="secondary button-compact" onClick={onApplyProfileJson}>
@@ -441,16 +499,7 @@ export function ProfileView({
             </div>
           </div>
         ) : null}
-
-        <div className="inline compact-actions" style={{ marginTop: 16 }}>
-          <button className="button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
-            {isGeneratingResume ? '生成中...' : '用主档生成简历'}
-          </button>
-          <button className="secondary button-compact" onClick={onGoResumes}>
-            去简历中心继续编辑
-          </button>
-        </div>
-      </article>
+      </PanelShell>
     </section>
   );
 }

@@ -1,3 +1,5 @@
+import { getWorkspaceViewChrome } from '@/lib/workspace-ui';
+
 type WorkspaceView =
   | 'home'
   | 'profile'
@@ -30,27 +32,38 @@ export function Topbar({
   onToggleContext,
   onLogout
 }: TopbarProps) {
+  const chrome = getWorkspaceViewChrome(activeView);
+
   return (
     <section className="workspace-topbar">
-      <div>
+      <div className="topbar-headline">
         <div className="topbar-actions-row">
-          <button className="ghost sidebar-toggle" onClick={onToggleSidebar}>
+          <button className="ghost sidebar-toggle topbar-utility" onClick={onToggleSidebar}>
             菜单
           </button>
-          <button className="ghost context-toggle" onClick={onToggleContext}>
-            {contextOpen ? '收起右栏' : '展开右栏'}
+          <span className={`topbar-chip topbar-chip-${chrome.accent}`}>{chrome.secondaryLabel}</span>
+          <button className="ghost context-toggle topbar-utility" onClick={onToggleContext}>
+            {contextOpen ? '收起右栏' : '展开上下文'}
           </button>
         </div>
-        <p className="eyebrow">Notion-style workspace</p>
+        <p className="eyebrow topbar-eyebrow">{chrome.eyebrow}</p>
         <h1>{viewMeta[activeView].title}</h1>
-        <p className="small">{viewMeta[activeView].description}</p>
+        <p className="small topbar-description">{viewMeta[activeView].description}</p>
       </div>
-      <div className="identity-card notion-card">
-        <div className="identity-name">{user.name}</div>
-        <div className="small">{user.email}</div>
-        <button className="secondary" onClick={onLogout}>
-          退出登录
-        </button>
+      <div className="topbar-right">
+        <span className={`topbar-primary topbar-primary-${chrome.accent}`}>
+          {chrome.primaryActionLabel}
+        </span>
+        <div className="identity-card notion-card">
+          <div className="identity-avatar">{user.name.slice(0, 1) || 'U'}</div>
+          <div className="identity-copy">
+            <div className="identity-name">{user.name}</div>
+            <div className="small">{user.email}</div>
+          </div>
+          <button className="secondary topbar-logout" onClick={onLogout}>
+            退出
+          </button>
+        </div>
       </div>
     </section>
   );

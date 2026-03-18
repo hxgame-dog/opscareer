@@ -1,8 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { ActionBar } from '@/app/components/ui/action-bar';
 import { EmptyState } from '@/app/components/ui/empty-state';
-import { SectionHeader } from '@/app/components/ui/section-header';
+import { PageHeader } from '@/app/components/ui/page-header';
+import { PanelShell } from '@/app/components/ui/panel-shell';
+import { ResultCard } from '@/app/components/ui/result-card';
+import { ToolbarTabs } from '@/app/components/ui/toolbar-tabs';
 import { getMockInterviewCategoryLabel } from '@/lib/mock-interview';
 import type { Language, MockInterviewEvaluation, MockInterviewListItem, MockInterviewQuestion, MockInterviewSession } from '@/types/domain';
 
@@ -68,96 +72,86 @@ export function MockInterviewView({
   const [reviewTab, setReviewTab] = useState<'summary' | 'history'>('summary');
 
   return (
-    <section className="content-stack">
-      <article className="panel panel-tight">
-        <SectionHeader
-          eyebrow="Mock Interview"
-          title="开始一场模拟面试"
-          actions={
-            <div className="inline compact-actions">
-            <button className="button-compact" onClick={onStartMockInterview} disabled={isStartingMockInterview}>
-              {isStartingMockInterview ? '创建中...' : '开始模拟'}
-            </button>
-            <button className="secondary button-compact" onClick={onLoadMockInterviews}>
-              刷新历史
-            </button>
-            </div>
-          }
-        />
-        <div className="grid-4">
-          <div>
-            <label>选择已有 JD</label>
-            <select
-              value={mockInterviewSetup.jobPostingId}
-              onChange={(e) => onMockInterviewSetupChange({ ...mockInterviewSetup, jobPostingId: e.target.value })}
-            >
-              <option value="">使用当前 JD 编辑区</option>
-              {jdLibrary.map((posting) => (
-                <option key={posting.id} value={posting.id}>
-                  {posting.company} · {posting.role}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>语言</label>
-            <select
-              value={mockInterviewSetup.language}
-              onChange={(e) => onMockInterviewSetupChange({ ...mockInterviewSetup, language: e.target.value as Language })}
-            >
-              <option value="zh-CN">中文</option>
-              <option value="en-US">English</option>
-            </select>
-          </div>
-          <div>
-            <label>目标级别</label>
-            <input
-              value={mockInterviewSetup.targetLevel}
-              onChange={(e) => onMockInterviewSetupChange({ ...mockInterviewSetup, targetLevel: e.target.value })}
-            />
-          </div>
-          <div>
-            <label>题目数量</label>
-            <select
-              value={mockInterviewSetup.questionCount}
-              onChange={(e) =>
-                onMockInterviewSetupChange({
-                  ...mockInterviewSetup,
-                  questionCount: Number(e.target.value) as 3 | 5 | 8
-                })
-              }
-            >
-              <option value={3}>3 题</option>
-              <option value={5}>5 题</option>
-              <option value={8}>8 题</option>
-            </select>
-          </div>
-        </div>
-      </article>
+    <section className="content-stack workspace-stage">
+      <PageHeader
+        eyebrow="Interview Trainer"
+        title="围绕目标岗位做一场专注训练"
+        description="把设置、当前题目和会话回顾拆开，让你的注意力始终落在当前答题上。"
+        accent="emerald"
+        meta={
+          <>
+            <span className="timeline-tag">逐题训练</span>
+            <span className="timeline-tag">录音转写</span>
+            <span className="timeline-tag">总评复盘</span>
+          </>
+        }
+        actions={
+          <ActionBar
+            left={
+              <div className="mock-setup-compact">
+                <select
+                  value={mockInterviewSetup.jobPostingId}
+                  onChange={(e) => onMockInterviewSetupChange({ ...mockInterviewSetup, jobPostingId: e.target.value })}
+                >
+                  <option value="">使用当前 JD 编辑区</option>
+                  {jdLibrary.map((posting) => (
+                    <option key={posting.id} value={posting.id}>
+                      {posting.company} · {posting.role}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={mockInterviewSetup.language}
+                  onChange={(e) => onMockInterviewSetupChange({ ...mockInterviewSetup, language: e.target.value as Language })}
+                >
+                  <option value="zh-CN">中文</option>
+                  <option value="en-US">English</option>
+                </select>
+                <select
+                  value={mockInterviewSetup.questionCount}
+                  onChange={(e) => onMockInterviewSetupChange({ ...mockInterviewSetup, questionCount: Number(e.target.value) as 3 | 5 | 8 })}
+                >
+                  <option value={3}>3 题</option>
+                  <option value={5}>5 题</option>
+                  <option value={8}>8 题</option>
+                </select>
+              </div>
+            }
+            right={
+              <div className="inline compact-actions">
+                <button onClick={onStartMockInterview} disabled={isStartingMockInterview}>
+                  {isStartingMockInterview ? '创建中...' : '开始模拟'}
+                </button>
+                <button className="secondary" onClick={onLoadMockInterviews}>刷新历史</button>
+              </div>
+            }
+          />
+        }
+      />
 
-      <div className="mock-view-layout">
-        <article className="panel panel-tight mock-runner-panel">
-          <SectionHeader eyebrow="Runner" title="当前答题区" />
+      <div className="mock-stage-layout">
+        <PanelShell eyebrow="Runner" title="当前题目主卡" subtitle="把注意力集中在当前这道题和回答反馈。">
           {selectedMockInterview ? (
             <>
-              <div className="small">
-                {selectedMockInterview.company} · {selectedMockInterview.role} · {selectedMockInterview.status}
+              <div className="mock-session-banner">
+                <strong>{selectedMockInterview.company} · {selectedMockInterview.role}</strong>
+                <span className="small">{selectedMockInterview.status} · 已答 {selectedMockInterview.turns.length}/{selectedMockInterview.questionCount} 题</span>
               </div>
               {currentMockQuestion ? (
-                <div className="item mock-question-card">
-                  <div className="timeline-tag">{getMockInterviewCategoryLabel(currentMockQuestion.category)}</div>
-                  <div className="small">
-                    第 {currentMockQuestion.order} 题 · 难度 {currentMockQuestion.difficulty}
+                <div className="mock-main-card">
+                  <div className="mock-main-card-head">
+                    <span className="timeline-tag">{getMockInterviewCategoryLabel(currentMockQuestion.category)}</span>
+                    <span className="small">第 {currentMockQuestion.order} 题 · 难度 {currentMockQuestion.difficulty}</span>
                   </div>
-                  <p>{currentMockQuestion.question}</p>
-                  <div className="small">考察意图: {currentMockQuestion.intent}</div>
+                  <h3>{currentMockQuestion.question}</h3>
+                  <p className="small">考察意图: {currentMockQuestion.intent}</p>
                   <div className="inline compact-actions">
-                    <button className="button-compact" onClick={onToggleMockInterviewRecording} disabled={isSubmittingMockTurn}>
+                    <button onClick={onToggleMockInterviewRecording} disabled={isSubmittingMockTurn}>
                       {isRecordingMockInterview ? '结束录音并提交' : '开始录音回答'}
                     </button>
                     {pendingMockEvaluationTurn?.questionId === currentMockQuestion.id ? (
                       <button
-                        className="warn button-compact"
+                        className="warn"
                         onClick={() => onSubmitMockInterviewAnswer(currentMockQuestion.id, true)}
                         disabled={isSubmittingMockTurn}
                       >
@@ -167,97 +161,78 @@ export function MockInterviewView({
                   </div>
                 </div>
               ) : (
-                <EmptyState title="当前会话已没有待回答题目" description="可以查看总评，或者重新开始一场新的模拟面试。" />
+                <EmptyState title="当前会话没有待回答题目" description="你可以查看总评，或者重新开始一场新的模拟面试。" />
               )}
-              <div className="list" style={{ marginTop: 12 }}>
-                {selectedMockInterview.questions.map((question) => {
-                  const turn = selectedMockInterview.turns.find((item) => item.questionId === question.id);
-                  return (
-                    <div key={question.id} className="item">
-                      <strong>
-                        第 {question.order} 题 · {getMockInterviewCategoryLabel(question.category)}
-                      </strong>
-                      <div className="small">{question.question}</div>
-                      <div className="small">
-                        {turn?.evaluation ? `得分 ${turn.evaluation.score}` : turn ? '已转写待评分' : '未作答'}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <PanelShell eyebrow="Progress" title="题目进度" subtitle="每道题的作答状态和得分。">
+                <div className="dashboard-card-list">
+                  {selectedMockInterview.questions.map((question) => {
+                    const turn = selectedMockInterview.turns.find((item) => item.questionId === question.id);
+                    return (
+                      <ResultCard
+                        key={question.id}
+                        title={`第 ${question.order} 题 · ${getMockInterviewCategoryLabel(question.category)}`}
+                        subtitle={question.question}
+                        meta={<div className="small">{turn?.evaluation ? `得分 ${turn.evaluation.score}` : turn ? '已转写待评分' : '未作答'}</div>}
+                      />
+                    );
+                  })}
+                </div>
+              </PanelShell>
             </>
           ) : (
             <EmptyState title="还没有选中模拟面试" description="从右侧历史里打开一场会话后，就可以在这里逐题回答。" />
           )}
-        </article>
+        </PanelShell>
 
-        <article className="panel panel-tight mock-review-panel">
-          <SectionHeader eyebrow="Review" title="会话回顾" />
-          <div className="tool-tabs mock-review-tabs">
-            <button
-              className={`tool-tab ${reviewTab === 'summary' ? 'tool-tab-active' : ''}`}
-              onClick={() => setReviewTab('summary')}
-              type="button"
-            >
-              总评
-            </button>
-            <button
-              className={`tool-tab ${reviewTab === 'history' ? 'tool-tab-active' : ''}`}
-              onClick={() => setReviewTab('history')}
-              type="button"
-            >
-              历史
-            </button>
-          </div>
+        <PanelShell eyebrow="Review" title="会话回顾" subtitle="历史和总评分开，默认总评优先。">
+          <ToolbarTabs
+            value={reviewTab}
+            items={[
+              { id: 'summary', label: '总评' },
+              { id: 'history', label: '历史' }
+            ]}
+            onChange={setReviewTab}
+          />
           {reviewTab === 'summary' ? (
-            <div className="tool-tab-panel">
-              {selectedMockInterview?.summary ? (
-                <>
-                  <div className="mock-score-grid">
-                    <div className="item">
-                      <strong>总分</strong>
-                      <div className="mock-score">{selectedMockInterview.summary.overallScore}</div>
-                    </div>
-                    <div className="item">
-                      <strong>表现等级</strong>
-                      <div className="small">{selectedMockInterview.summary.performanceLevel}</div>
-                    </div>
-                    <div className="item">
-                      <strong>优势</strong>
-                      <div className="small">{selectedMockInterview.summary.topStrengths.join('；') || '无'}</div>
-                    </div>
-                    <div className="item">
-                      <strong>风险点</strong>
-                      <div className="small">{selectedMockInterview.summary.topRisks.join('；') || '无'}</div>
-                    </div>
-                  </div>
-                  <button className="warn button-compact" onClick={onSaveMockInterviewToTracker}>
-                    保存到 Interview Tracker
-                  </button>
-                </>
+            selectedMockInterview?.summary ? (
+              <div className="tool-tab-panel">
+                <div className="mock-score-grid">
+                  <ResultCard title="总分" subtitle={String(selectedMockInterview.summary.overallScore)} />
+                  <ResultCard title="表现等级" subtitle={selectedMockInterview.summary.performanceLevel} />
+                </div>
+                <ResultCard
+                  title="亮点"
+                  meta={<div className="small">{selectedMockInterview.summary.topStrengths.join('；') || '无'}</div>}
+                />
+                <ResultCard
+                  title="风险点"
+                  meta={<div className="small">{selectedMockInterview.summary.topRisks.join('；') || '无'}</div>}
+                />
+                <button className="warn" onClick={onSaveMockInterviewToTracker}>
+                  保存到 Interview Tracker
+                </button>
+              </div>
+            ) : (
+              <EmptyState title="还没有整场总评" description="完成全部题目后，这里会展示总分、亮点和风险点。" />
+            )
+          ) : (
+            <div className="dashboard-card-list">
+              {mockInterviewSessions.length > 0 ? (
+                mockInterviewSessions.map((session) => (
+                  <ResultCard
+                    key={session.id}
+                    title={`${session.company} · ${session.role}`}
+                    subtitle={`${session.status} · ${session.answeredCount}/${session.questionCount} 题`}
+                    meta={<div className="small">{session.overallScore !== null ? `总分 ${session.overallScore}` : '尚未完成'}</div>}
+                    onClick={() => onOpenMockInterview(session.id)}
+                  />
+                ))
               ) : (
-                <EmptyState title="还没有整场总评" description="完成全部题目后，这里会展示总分、亮点和风险点。" />
+                <EmptyState title="暂无模拟面试记录" description="开始第一场模拟面试后，历史会沉淀在这里。" />
               )}
             </div>
-          ) : (
-            <div className="tool-tab-panel">
-              <div className="list">
-                {mockInterviewSessions.map((session) => (
-                  <button key={session.id} className="item card-button" onClick={() => onOpenMockInterview(session.id)}>
-                    <strong>
-                      {session.company} · {session.role}
-                    </strong>
-                    <div className="small">
-                      {session.status} · {session.answeredCount}/{session.questionCount} 题 ·{' '}
-                      {session.overallScore !== null ? `总分 ${session.overallScore}` : '尚未完成'}
-                    </div>
-                  </button>
-                ))}
-                {mockInterviewSessions.length === 0 ? <EmptyState title="暂无模拟面试记录" description="开始第一场模拟面试后，历史会沉淀在这里。" /> : null}
-              </div>
-            </div>
           )}
-        </article>
+        </PanelShell>
       </div>
     </section>
   );

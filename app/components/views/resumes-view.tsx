@@ -1,8 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { ActionBar } from '@/app/components/ui/action-bar';
+import { EmptyState } from '@/app/components/ui/empty-state';
+import { PageHeader } from '@/app/components/ui/page-header';
+import { PanelShell } from '@/app/components/ui/panel-shell';
+import { ResultCard } from '@/app/components/ui/result-card';
+import { ToolbarTabs } from '@/app/components/ui/toolbar-tabs';
 import { resumeThemes } from '@/lib/resume-themes';
-import type { Language, ResumeDiffResult, ResumeImportPreview, ResumeTheme } from '@/types/domain';
+import type { ResumeDiffResult, ResumeImportPreview, ResumeTheme } from '@/types/domain';
 
 type ResumeVersion = {
   id: string;
@@ -101,65 +107,37 @@ export function ResumesView({
   isLoadingDiff
 }: ResumesViewProps) {
   const formatTime = (value: string) => new Date(value).toLocaleString();
-  const [toolTab, setToolTab] = useState<'theme' | 'diff'>('theme');
+  const [toolTab, setToolTab] = useState<'theme' | 'diff' | 'summary'>('theme');
 
   return (
-    <section className="content-stack">
-      <div className="resumes-layout">
-        <article className="panel panel-tight resumes-sidebar-panel">
-          <div className="database-header database-header-compact">
-            <div>
-              <div className="eyebrow">Resume Library</div>
-              <h2>我的简历</h2>
-            </div>
-            <button className="secondary button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
-              {isGeneratingResume ? '生成中...' : '新建版本'}
-            </button>
-          </div>
-          <div className="resume-groups">
-            {resumeGroups.map((group) => (
-              <section key={group.rootResumeId} className="resume-group-card">
-                <div className="resume-group-title-row">
-                  <div>
-                    <strong>{group.displayTitle}</strong>
-                    <div className="small">{group.versionCount} 个版本</div>
-                  </div>
-                  <span className="small">{formatTime(group.updatedAt)}</span>
-                </div>
-                <div className="history-list">
-                  {group.versions.map((version) => (
-                    <div key={version.id} className={`history-item ${resumeId === version.id ? 'history-item-active' : ''}`}>
-                      <button className="history-item-main" onClick={() => onSelectResumeVersion(version.id)}>
-                        <span>V{version.version}</span>
-                        <span className="small">{version.targetLabel ?? version.title}</span>
-                      </button>
-                      <button className="danger" onClick={() => onDeleteResume(version.id)}>
-                        删除
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-            {resumeGroups.length === 0 ? <div className="item small">还没有简历，先生成第一版。</div> : null}
-          </div>
-        </article>
-
-        <article className="panel panel-tight resumes-editor-panel">
-          <div className="database-header database-header-compact">
-            <div>
-              <div className="eyebrow">Editor</div>
-              <h2>简历编辑器</h2>
-            </div>
-            <div className="inline compact-actions">
-              <button className="button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
-                {isGeneratingResume ? '生成中...' : '生成简历'}
-              </button>
-              <button className="secondary button-compact" onClick={onOptimizeResume} disabled={isOptimizingResume}>
-                {isOptimizingResume ? '优化中...' : '按 JD 优化'}
-              </button>
-              <label className="button-file button-compact secondary">
-                {isImportingResumeFile ? '导入中...' : '导入 PDF / Word'}
+    <section className="content-stack workspace-stage">
+      <PageHeader
+        eyebrow="Resume Studio"
+        title="围绕投递目标编辑你的简历"
+        description="把版本链、导入预览、正文编辑和主题工具统一收进一个更专业的编辑器工作台。"
+        accent="indigo"
+        meta={
+          <>
+            <span className="timeline-tag">版本链</span>
+            <span className="timeline-tag">导入预览</span>
+            <span className="timeline-tag">正文编辑</span>
+          </>
+        }
+        actions={
+          <ActionBar
+            left={
+              <div className="inline compact-actions">
+                <button onClick={onGenerateResume} disabled={isGeneratingResume}>
+                  {isGeneratingResume ? '生成中...' : '生成简历'}
+                </button>
+                <button className="secondary" onClick={onOptimizeResume} disabled={isOptimizingResume}>
+                  {isOptimizingResume ? '优化中...' : '按 JD 优化'}
+                </button>
+              </div>
+            }
+            right={
+              <label className="button-file secondary">
+                {isImportingResumeFile ? '识别中...' : '导入 PDF / DOCX'}
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
@@ -173,32 +151,81 @@ export function ResumesView({
                   }}
                 />
               </label>
+            }
+          />
+        }
+      />
+
+      <div className="resume-studio-layout">
+        <PanelShell
+          eyebrow="Library"
+          title="简历库与版本链"
+          subtitle={`共 ${resumeGroups.length} 组简历`}
+          className="resume-library-panel"
+          actions={
+            <button className="secondary button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
+              新建版本
+            </button>
+          }
+        >
+          <div className="resume-groups">
+            {resumeGroups.length > 0 ? (
+              resumeGroups.map((group) => (
+                <section key={group.rootResumeId} className="resume-group-card">
+                  <div className="resume-group-title-row">
+                    <div>
+                      <strong>{group.displayTitle}</strong>
+                      <div className="small">{group.versionCount} 个版本</div>
+                    </div>
+                    <span className="small">{formatTime(group.updatedAt)}</span>
+                  </div>
+                  <div className="dashboard-card-list">
+                    {group.versions.map((version) => (
+                      <ResultCard
+                        key={version.id}
+                        title={`V${version.version}`}
+                        subtitle={version.targetLabel ?? version.title}
+                        active={resumeId === version.id}
+                        meta={<div className="small">{version.theme} · {formatTime(version.updatedAt)}</div>}
+                        onClick={() => onSelectResumeVersion(version.id)}
+                        actions={
+                          <button className="danger button-compact" onClick={() => onDeleteResume(version.id)}>
+                            删除
+                          </button>
+                        }
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))
+            ) : (
+              <EmptyState title="还没有简历" description="先生成第一版简历，后续才能形成版本链。" />
+            )}
+          </div>
+        </PanelShell>
+
+        <PanelShell eyebrow="Editor" title="正文编辑器" subtitle="这里是你最重要的主工作区。" className="resume-editor-panel">
+          <div className="resume-editor-toolbar">
+            <input value={resumeTitle} onChange={(event) => onResumeTitleChange(event.target.value)} placeholder="当前简历标题" />
+            <div className="inline compact-actions">
+              <button className="ghost button-compact" onClick={onRenameResume} disabled={!resumeId || isRenamingResume}>
+                {isRenamingResume ? '保存中...' : '重命名'}
+              </button>
+              <button className="button-compact" onClick={onSaveResumeContent} disabled={!resumeId || isSavingResumeContent}>
+                {isSavingResumeContent ? '保存中...' : '保存正文'}
+              </button>
+              <a href={resumeId ? `/api/resume/${resumeId}/export?format=md` : '#'} className="anchor-wrap">
+                <button className="secondary button-compact" disabled={!resumeId}>Markdown</button>
+              </a>
+              <a href={resumeId ? `/api/resume/${resumeId}/export?format=pdf` : '#'} className="anchor-wrap">
+                <button className="warn button-compact" disabled={!resumeId}>PDF</button>
+              </a>
             </div>
           </div>
-          <label>当前简历标题</label>
-          <input value={resumeTitle} onChange={(e) => onResumeTitleChange(e.target.value)} placeholder="给当前版本起个名字" />
-          <div className="inline compact-actions">
-            <button className="ghost button-compact" onClick={onRenameResume} disabled={!resumeId || isRenamingResume}>
-              {isRenamingResume ? '保存中...' : '重命名'}
-            </button>
-            <button className="button-compact" onClick={onSaveResumeContent} disabled={!resumeId || isSavingResumeContent}>
-              {isSavingResumeContent ? '保存中...' : '保存正文'}
-            </button>
-            <a href={resumeId ? `/api/resume/${resumeId}/export?format=md` : '#'} className="anchor-wrap">
-              <button className="secondary button-compact" disabled={!resumeId}>
-                Markdown
-              </button>
-            </a>
-            <a href={resumeId ? `/api/resume/${resumeId}/export?format=pdf` : '#'} className="anchor-wrap">
-              <button className="warn button-compact" disabled={!resumeId}>
-                PDF
-              </button>
-            </a>
-          </div>
-          <div className="small">支持导入 PDF、DOCX 简历。旧版 `.doc` 请先转成 `.docx` 或 PDF。</div>
+
           {resumeImportPreview ? (
             <div className="resume-import-preview">
-              <div className="section-header">
+              <div className="page-inline-header">
                 <div>
                   <div className="section-eyebrow">Import Preview</div>
                   <h3 className="section-title">识别预览确认</h3>
@@ -207,12 +234,7 @@ export function ResumesView({
                   <button className="ghost button-compact" type="button" onClick={onCancelResumeImport}>
                     取消
                   </button>
-                  <button
-                    className="button-compact"
-                    type="button"
-                    onClick={onConfirmResumeImport}
-                    disabled={isConfirmingResumeImport}
-                  >
+                  <button type="button" className="button-compact" onClick={onConfirmResumeImport} disabled={isConfirmingResumeImport}>
                     {isConfirmingResumeImport ? '保存中...' : '确认导入'}
                   </button>
                 </div>
@@ -235,59 +257,41 @@ export function ResumesView({
                 value={resumeImportPreview.markdown}
                 onChange={(event) => onChangeResumeImportPreview({ markdown: event.target.value })}
               />
-              <div className="small">确认导入后，这份内容会保存为新的简历版本，同时回填个人档案。</div>
             </div>
           ) : null}
-          <label>Resume Markdown</label>
-          <textarea value={resumeMarkdown} onChange={(e) => onResumeMarkdownChange(e.target.value)} />
-        </article>
 
-        <article className="panel panel-tight resumes-side-panel">
-          <div className="database-header database-header-compact">
-            <div>
-              <div className="eyebrow">Theme + Diff</div>
-              <h2>版本工具</h2>
-            </div>
-          </div>
-          <div className="tool-tabs">
-            <button
-              className={`tool-tab ${toolTab === 'theme' ? 'tool-tab-active' : ''}`}
-              onClick={() => setToolTab('theme')}
-              type="button"
-            >
-              主题
-            </button>
-            <button
-              className={`tool-tab ${toolTab === 'diff' ? 'tool-tab-active' : ''}`}
-              onClick={() => setToolTab('diff')}
-              type="button"
-            >
-              版本对比
-            </button>
-          </div>
+          <textarea className="resume-editor-markdown" value={resumeMarkdown} onChange={(event) => onResumeMarkdownChange(event.target.value)} />
+        </PanelShell>
+
+        <PanelShell eyebrow="Tools" title="主题 / 对比 / 摘要" subtitle="把次级工具收进右侧辅助区。" className="resume-tools-panel">
+          <ToolbarTabs
+            value={toolTab}
+            items={[
+              { id: 'theme', label: '主题' },
+              { id: 'diff', label: '版本对比' },
+              { id: 'summary', label: '当前版本' }
+            ]}
+            onChange={setToolTab}
+          />
           {toolTab === 'theme' ? (
-            <div className="tool-tab-panel">
-              <div className="theme-grid theme-grid-compact">
-                {resumeThemes.map((theme) => (
-                  <button
-                    key={theme.id}
-                    className={`theme-card ${activeTheme === theme.id ? 'theme-card-active' : ''}`}
-                    onClick={() => onApplyTheme(theme.id)}
-                    style={{ ['--theme-accent' as string]: theme.accentColor }}
-                  >
-                    <span>{theme.name}</span>
-                    <span className="small">{theme.tone}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="theme-grid theme-grid-compact">
+              {resumeThemes.map((theme) => (
+                <button
+                  key={theme.id}
+                  className={`theme-card ${activeTheme === theme.id ? 'theme-card-active' : ''}`}
+                  onClick={() => onApplyTheme(theme.id)}
+                  style={{ ['--theme-accent' as string]: theme.accentColor }}
+                >
+                  <span>{theme.name}</span>
+                  <span className="small">{theme.tone}</span>
+                </button>
+              ))}
             </div>
-          ) : (
+          ) : null}
+          {toolTab === 'diff' ? (
             <div className="tool-tab-panel">
               <label>基础版本</label>
-              <select
-                value={diffSelection.baseId}
-                onChange={(e) => onDiffSelectionChange({ ...diffSelection, baseId: e.target.value })}
-              >
+              <select value={diffSelection.baseId} onChange={(e) => onDiffSelectionChange({ ...diffSelection, baseId: e.target.value })}>
                 <option value="">请选择版本</option>
                 {allResumeVersions.map((version) => (
                   <option key={version.id} value={version.id}>
@@ -296,10 +300,7 @@ export function ResumesView({
                 ))}
               </select>
               <label>对比版本</label>
-              <select
-                value={diffSelection.compareId}
-                onChange={(e) => onDiffSelectionChange({ ...diffSelection, compareId: e.target.value })}
-              >
+              <select value={diffSelection.compareId} onChange={(e) => onDiffSelectionChange({ ...diffSelection, compareId: e.target.value })}>
                 <option value="">请选择版本</option>
                 {allResumeVersions.map((version) => (
                   <option key={version.id} value={version.id}>
@@ -311,7 +312,7 @@ export function ResumesView({
                 {isLoadingDiff ? '分析中...' : '生成差异'}
               </button>
               {diffResult ? (
-                <div className="diff-grid diff-grid-single" style={{ marginTop: 12 }}>
+                <div className="diff-grid diff-grid-single">
                   <div className="item">
                     <strong>Summary</strong>
                     <div className="small">Before: {diffResult.diff.summary.before || '空'}</div>
@@ -324,13 +325,20 @@ export function ResumesView({
                   </div>
                 </div>
               ) : (
-                <div className="item small" style={{ marginTop: 12 }}>
-                  选择两个版本后即可查看差异。
-                </div>
+                <EmptyState title="先选两个版本" description="选择两个版本后即可查看结构化差异。" />
               )}
             </div>
-          )}
-        </article>
+          ) : null}
+          {toolTab === 'summary' ? (
+            <div className="tool-tab-panel">
+              <ResultCard
+                title={resumeTitle || '未命名简历'}
+                subtitle={resumeId || '还没有保存版本'}
+                meta={<div className="small">主题 {activeTheme} · 正文 {resumeMarkdown.length} 字符</div>}
+              />
+            </div>
+          ) : null}
+        </PanelShell>
       </div>
     </section>
   );

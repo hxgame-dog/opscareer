@@ -1,5 +1,10 @@
 import { EmptyState } from '@/app/components/ui/empty-state';
-import { SectionHeader } from '@/app/components/ui/section-header';
+import { ActionBar } from '@/app/components/ui/action-bar';
+import { MetricChip } from '@/app/components/ui/metric-chip';
+import { PageHeader } from '@/app/components/ui/page-header';
+import { PanelShell } from '@/app/components/ui/panel-shell';
+import { ResultCard } from '@/app/components/ui/result-card';
+import { SearchBar } from '@/app/components/ui/search-bar';
 import { StatusBadge } from '@/app/components/ui/status-badge';
 
 type ApplicationCard = {
@@ -80,147 +85,179 @@ export function HomeView({
   onOpenMockInterview
 }: HomeViewProps) {
   const focusItems = [
-    resumeGroupCount === 0 ? '先生成第一份简历，建立你的版本基线。' : null,
-    jdCount === 0 ? '把正在投递的岗位保存进 JD 库，后续优化会轻松很多。' : null,
-    applicationCount === 0 ? '从 JD 库创建第一条投递，工作台才能真正串起来。' : null,
-    mockInterviewCount === 0 ? '挑一个目标岗位做一次模拟面试，尽快拿到首轮反馈。' : null
+    resumeGroupCount === 0 ? '先生成第一份简历，建立版本基线。' : null,
+    jdCount === 0 ? '保存目标岗位到 JD 库，后续优化和模拟面试都会复用。' : null,
+    applicationCount === 0 ? '从 JD 库创建第一条投递，让整个工作台真正串起来。' : null,
+    mockInterviewCount === 0 ? '挑一个目标岗位做一次模拟面试，先拿到第一轮反馈。' : null
   ].filter(Boolean) as string[];
 
   return (
-    <section className="content-stack">
-      <div className="dashboard-kpi-grid">
-        <article className="panel metric-panel">
-          <div className="eyebrow">Resumes</div>
-          <strong>{resumeGroupCount}</strong>
-          <span className="small">简历组</span>
-        </article>
-        <article className="panel metric-panel">
-          <div className="eyebrow">Job Postings</div>
-          <strong>{jdCount}</strong>
-          <span className="small">收藏 JD</span>
-        </article>
-        <article className="panel metric-panel">
-          <div className="eyebrow">Applications</div>
-          <strong>{applicationCount}</strong>
-          <span className="small">投递总数</span>
-        </article>
-        <article className="panel metric-panel">
-          <div className="eyebrow">In Progress</div>
-          <strong>{activeApplicationCount}</strong>
-          <span className="small">进行中的投递</span>
-        </article>
-        <article className="panel metric-panel">
-          <div className="eyebrow">Mock</div>
-          <strong>{mockInterviewCount}</strong>
-          <span className="small">模拟面试</span>
-        </article>
-        <article className="panel metric-panel">
-          <div className="eyebrow">Interviews</div>
-          <strong>{interviewCount}</strong>
-          <span className="small">面试记录</span>
-        </article>
+    <section className="content-stack workspace-stage">
+      <PageHeader
+        eyebrow="Action Home"
+        title="今天要推进什么"
+        description="把最重要的动作集中在一个入口区里，少看噪音，多做推进。"
+        accent="indigo"
+        meta={
+          <>
+            <span className="timeline-tag">桌面优先</span>
+            <span className="timeline-tag">任务执行台</span>
+          </>
+        }
+        actions={
+          <ActionBar
+            left={
+              <SearchBar
+                label="快速入口"
+                value=""
+                placeholder="搜索简历、JD、公司或下一步动作"
+                onChange={() => {}}
+              />
+            }
+            right={
+              <div className="inline compact-actions">
+                <button onClick={onGoResumes}>去做简历</button>
+                <button className="secondary" onClick={onGoJobs}>打开 JD 库</button>
+                <button className="ghost" onClick={onGoMock}>开始模拟面试</button>
+              </div>
+            }
+          />
+        }
+      />
+
+      <div className="metrics-strip">
+        <MetricChip label="Resumes" value={resumeGroupCount} hint="简历组" />
+        <MetricChip label="Job Postings" value={jdCount} hint="收藏 JD" />
+        <MetricChip label="Applications" value={applicationCount} hint="投递总数" />
+        <MetricChip label="In Progress" value={activeApplicationCount} hint="进行中的投递" />
+        <MetricChip label="Mock" value={mockInterviewCount} hint="模拟面试" />
+        <MetricChip label="Interviews" value={interviewCount} hint="面试记录" />
       </div>
 
-      <div className="dashboard-top-grid">
-        <article className="panel">
-          <SectionHeader eyebrow="Focus" title="今天优先做什么" />
-          <div className="list">
+      <div className="dashboard-hero-grid">
+        <PanelShell
+          eyebrow="Focus"
+          title="今日优先任务"
+          subtitle="把今天最值得推进的事情放在一个明确主区。"
+        >
+          <div className="dashboard-task-stack">
             {focusItems.length > 0 ? (
               focusItems.map((item) => (
-                <div key={item} className="item small">
-                  {item}
+                <div key={item} className="dashboard-task-card">
+                  <strong>下一步</strong>
+                  <div className="small">{item}</div>
                 </div>
               ))
             ) : (
               <EmptyState title="基础资料已经齐了" description="建议优先推进进行中的投递和模拟面试。" />
             )}
           </div>
-          <div className="inline" style={{ marginTop: 12 }}>
-            <button onClick={onGoResumes}>去做简历</button>
-            <button className="secondary" onClick={onGoJobs}>打开 JD 库</button>
-            <button className="ghost" onClick={onGoMock}>开始模拟面试</button>
-          </div>
-        </article>
+        </PanelShell>
 
-        <article className="panel">
-          <SectionHeader eyebrow="Reminders" title="待跟进事项" />
-          <div className="list">
+        <PanelShell eyebrow="Reminders" title="即将跟进" subtitle="从投递详情同步过来的提醒和下一步动作。">
+          <div className="dashboard-reminder-stack">
             {upcomingReminders.length > 0 ? (
               upcomingReminders.map((item) => (
-                <div key={item.id} className="item">
-                  <strong>{item.title}</strong>
-                  <div className="small">{item.detail}</div>
-                  {item.company && item.role ? <div className="small">{item.company} · {item.role}</div> : null}
-                  {item.reminderAt ? <div className="timeline-tag timeline-tag-warn">提醒: {new Date(item.reminderAt).toLocaleString()}</div> : null}
-                </div>
+                <ResultCard
+                  key={item.id}
+                  title={item.title}
+                  subtitle={item.company && item.role ? `${item.company} · ${item.role}` : undefined}
+                  meta={
+                    <>
+                      <div className="small">{item.detail}</div>
+                      {item.reminderAt ? (
+                        <div className="timeline-tag timeline-tag-warn">
+                          提醒 {new Date(item.reminderAt).toLocaleString()}
+                        </div>
+                      ) : null}
+                    </>
+                  }
+                />
               ))
             ) : (
-              <EmptyState title="当前没有明确提醒" description="打开某条投递，在右侧上下文里添加跟进提醒会显示在这里。" />
+              <EmptyState title="当前没有明确提醒" description="在投递详情里添加提醒后，这里会自动出现。" />
             )}
           </div>
-        </article>
+        </PanelShell>
       </div>
 
-      <div className="dashboard-bottom-grid">
-        <article className="panel">
-          <SectionHeader eyebrow="Applications" title="最近投递" />
-          <div className="list">
+      <div className="dashboard-results-grid">
+        <PanelShell eyebrow="Applications" title="最近投递">
+          <div className="dashboard-card-list">
             {recentApplications.length > 0 ? (
               recentApplications.map((application) => (
-                <button key={application.id} className="item card-button" onClick={() => onOpenApplication(application.id)}>
-                  <strong>{application.company} · {application.role}</strong>
-                  <div className="small">
-                    <StatusBadge>{application.status}</StatusBadge> <StatusBadge tone="warn">{application.priority}</StatusBadge>{' '}
-                    最近更新 {new Date(application.updatedAt).toLocaleString()}
-                  </div>
-                </button>
+                <ResultCard
+                  key={application.id}
+                  title={`${application.company} · ${application.role}`}
+                  subtitle={`更新于 ${new Date(application.updatedAt).toLocaleString()}`}
+                  meta={
+                    <>
+                      <StatusBadge>{application.status}</StatusBadge>{' '}
+                      <StatusBadge tone="warn">{application.priority}</StatusBadge>
+                    </>
+                  }
+                  onClick={() => onOpenApplication(application.id)}
+                />
               ))
             ) : (
               <EmptyState title="暂无投递记录" description="可以从 JD 库创建第一条投递。" />
             )}
           </div>
-        </article>
+        </PanelShell>
 
-        <article className="panel">
-          <SectionHeader eyebrow="Mock Sessions" title="最近模拟面试" />
-          <div className="list">
+        <PanelShell eyebrow="Mock Sessions" title="最近模拟面试">
+          <div className="dashboard-card-list">
             {recentMockInterviews.length > 0 ? (
               recentMockInterviews.map((session) => (
-                <button key={session.id} className="item card-button" onClick={() => onOpenMockInterview(session.id)}>
-                  <strong>{session.company} · {session.role}</strong>
-                  <div className="small">{session.status} · {session.answeredCount}/{session.questionCount} 题 · {session.overallScore !== null ? `总分 ${session.overallScore}` : '尚未完成'}</div>
-                </button>
+                <ResultCard
+                  key={session.id}
+                  title={`${session.company} · ${session.role}`}
+                  subtitle={`${session.answeredCount}/${session.questionCount} 题`}
+                  meta={
+                    <div className="small">
+                      {session.status} · {session.overallScore !== null ? `总分 ${session.overallScore}` : '尚未完成'}
+                    </div>
+                  }
+                  onClick={() => onOpenMockInterview(session.id)}
+                />
               ))
             ) : (
               <EmptyState title="暂无模拟面试记录" description="选择一个 JD 开始第一次模拟面试。" />
             )}
           </div>
-        </article>
+        </PanelShell>
 
-        <article className="panel">
-          <SectionHeader eyebrow="Interviews" title="最近面试记录" />
-          <div className="list">
+        <PanelShell eyebrow="Interviews" title="最近面试记录">
+          <div className="dashboard-card-list">
             {recentInterviews.length > 0 ? (
               recentInterviews.map((item) => (
-                <div key={item.id} className="item">
-                  <strong>{item.jobPosting.company} · {item.jobPosting.role}</strong>
-                  <div className="small">{item.roundName} · {item.status}</div>
-                  <div className="small">{item.summary ?? '还没有生成复盘总结'}</div>
-                </div>
+                <ResultCard
+                  key={item.id}
+                  title={`${item.jobPosting.company} · ${item.jobPosting.role}`}
+                  subtitle={`${item.roundName} · ${item.status}`}
+                  meta={<div className="small">{item.summary ?? '还没有生成复盘总结'}</div>}
+                />
               ))
             ) : (
               <EmptyState title="暂无面试记录" description="当你保存真实面试后，这里会出现最近记录。" />
             )}
           </div>
-        </article>
+        </PanelShell>
       </div>
 
-      <article className="panel">
-        <SectionHeader eyebrow="Activity" title="最近活动" />
-        <div className="list">
-          {logs.length > 0 ? logs.slice(0, 6).map((line) => <div key={line} className="item small">{line}</div>) : <EmptyState title="暂无活动记录" description="开始操作后，最近活动会显示在这里。" />}
+      <PanelShell eyebrow="Activity" title="最近活动" subtitle="帮助你快速回忆刚刚做了什么。">
+        <div className="dashboard-activity-list">
+          {logs.length > 0 ? (
+            logs.slice(0, 6).map((line) => (
+              <div key={line} className="dashboard-activity-item">
+                {line}
+              </div>
+            ))
+          ) : (
+            <EmptyState title="暂无活动记录" description="开始操作后，最近活动会显示在这里。" />
+          )}
         </div>
-      </article>
+      </PanelShell>
     </section>
   );
 }
