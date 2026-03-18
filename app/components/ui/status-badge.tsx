@@ -1,8 +1,11 @@
+import { getStatusBadgeTone, type StatusBadgeTone } from '@/lib/status-badge';
+
 type StatusBadgeProps = {
   children: string;
-  tone?: 'default' | 'success' | 'warn';
+  tone?: StatusBadgeTone;
 };
 
 export function StatusBadge({ children, tone = 'default' }: StatusBadgeProps) {
-  return <span className={`status-pill status-pill-${tone}`}>{children}</span>;
+  const resolvedTone = tone === 'default' ? getStatusBadgeTone(children) : tone;
+  return <span className={`status-pill status-pill-${resolvedTone}`}>{children}</span>;
 }
