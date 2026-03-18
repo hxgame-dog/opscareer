@@ -95,12 +95,11 @@ export function HomeView({
     <section className="content-stack workspace-stage">
       <PageHeader
         eyebrow="Action Home"
-        title="今天要推进什么"
+        title="今天推进什么"
         description="把最重要的动作集中在一个入口区里，少看噪音，多做推进。"
         accent="indigo"
         meta={
           <>
-            <span className="timeline-tag">桌面优先</span>
             <span className="timeline-tag">任务执行台</span>
           </>
         }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeResumeImportPreview } from '../lib/resume-import';
+import { ensurePdfTextExtractionPolyfills, normalizeResumeImportPreview } from '../lib/resume-import';
 
 describe('normalizeResumeImportPreview', () => {
   it('fills fallback title and language defaults', () => {
@@ -65,5 +65,29 @@ describe('normalizeResumeImportPreview', () => {
     expect(preview.title).toBe('我的导入简历');
     expect(preview.markdown).toContain('Jane Doe');
     expect(preview.theme).toBe('EXECUTIVE');
+  });
+
+  it('registers Node canvas polyfills for pdf text extraction', async () => {
+    const previousDomMatrix = globalThis.DOMMatrix;
+    const previousImageData = globalThis.ImageData;
+    const previousPath2D = globalThis.Path2D;
+
+    // @ts-expect-error test override
+    globalThis.DOMMatrix = undefined;
+    // @ts-expect-error test override
+    globalThis.ImageData = undefined;
+    // @ts-expect-error test override
+    globalThis.Path2D = undefined;
+
+    try {
+      await ensurePdfTextExtractionPolyfills();
+      expect(globalThis.DOMMatrix).toBeTypeOf('function');
+      expect(globalThis.ImageData).toBeTypeOf('function');
+      expect(globalThis.Path2D).toBeTypeOf('function');
+    } finally {
+      globalThis.DOMMatrix = previousDomMatrix;
+      globalThis.ImageData = previousImageData;
+      globalThis.Path2D = previousPath2D;
+    }
   });
 });

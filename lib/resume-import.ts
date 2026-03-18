@@ -105,11 +105,28 @@ export function normalizeResumeImportPreview(input: z.input<typeof ResumeImportP
   };
 }
 
+export async function ensurePdfTextExtractionPolyfills() {
+  if (globalThis.DOMMatrix && globalThis.ImageData && globalThis.Path2D) {
+    return;
+  }
+
+  const requireFn = eval('require') as NodeRequire;
+  const canvasModule = requireFn('@napi-rs/canvas') as {
+    DOMMatrix?: typeof DOMMatrix;
+    ImageData?: typeof ImageData;
+    Path2D?: typeof Path2D;
+  };
+  globalThis.DOMMatrix = globalThis.DOMMatrix ?? canvasModule.DOMMatrix;
+  globalThis.ImageData = globalThis.ImageData ?? canvasModule.ImageData;
+  globalThis.Path2D = globalThis.Path2D ?? canvasModule.Path2D;
+}
+
 export async function extractResumeText(file: File) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const lowerName = file.name.toLowerCase();
 
   if (lowerName.endsWith('.pdf')) {
+    await ensurePdfTextExtractionPolyfills();
     const pdfParseModule = await import('pdf-parse');
     const parser = new pdfParseModule.PDFParse({ data: buffer });
 
