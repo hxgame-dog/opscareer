@@ -74,15 +74,14 @@ export function ApplicationsView({
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
-        eyebrow="Pipeline Board"
+        eyebrow="Application Pipeline"
         title="按阶段推进每一次投递"
-        description="把视图切换、筛选和结果区放在同一个任务平面上，专注推进，而不是被信息拖住。"
-        accent="amber"
+        description="把视图切换、筛选和结果区放在同一个安静的任务平面里，只保留推进真正需要的信息。"
+        accent="warn"
         meta={
           <>
             <span className="timeline-tag">Board / List</span>
             <span className="timeline-tag">状态推进</span>
-            <span className="timeline-tag">右侧详情</span>
           </>
         }
         actions={

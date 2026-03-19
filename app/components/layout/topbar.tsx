@@ -1,24 +1,19 @@
-import { getWorkspaceViewChrome } from '@/lib/workspace-ui';
-
-type WorkspaceView =
-  | 'home'
-  | 'profile'
-  | 'resumes'
-  | 'jobs'
-  | 'mock'
-  | 'applications'
-  | 'interviews'
-  | 'settings';
+import {
+  getWorkspaceViewChrome,
+  type WorkspaceView,
+  type WorkspaceViewMeta
+} from '@/lib/workspace-ui';
 
 type TopbarProps = {
   activeView: WorkspaceView;
-  viewMeta: Record<WorkspaceView, { title: string; description: string }>;
+  viewMeta: Record<WorkspaceView, WorkspaceViewMeta>;
   user: {
     name: string;
     email: string;
   };
   onToggleSidebar: () => void;
   contextOpen: boolean;
+  contextAvailable?: boolean;
   onToggleContext: () => void;
   onLogout: () => void;
 };
@@ -29,6 +24,7 @@ export function Topbar({
   user,
   onToggleSidebar,
   contextOpen,
+  contextAvailable = true,
   onToggleContext,
   onLogout
 }: TopbarProps) {
@@ -42,8 +38,8 @@ export function Topbar({
             菜单
           </button>
           <span className={`topbar-chip topbar-chip-${chrome.accent}`}>{chrome.secondaryLabel}</span>
-          <button className="ghost context-toggle topbar-utility" onClick={onToggleContext}>
-            {contextOpen ? '收起右栏' : '展开上下文'}
+          <button className="ghost context-toggle topbar-utility" onClick={onToggleContext} disabled={!contextAvailable}>
+            {contextAvailable ? (contextOpen ? '收起上下文' : '展开上下文') : '当前无上下文'}
           </button>
         </div>
         <p className="eyebrow topbar-eyebrow">{chrome.eyebrow}</p>
@@ -51,9 +47,7 @@ export function Topbar({
         <p className="small topbar-description">{viewMeta[activeView].description}</p>
       </div>
       <div className="topbar-right">
-        <span className={`topbar-primary topbar-primary-${chrome.accent}`}>
-          {chrome.primaryActionLabel}
-        </span>
+        <span className={`topbar-primary topbar-primary-${chrome.accent}`}>{chrome.primaryActionLabel}</span>
         <div className="identity-card notion-card">
           <div className="identity-avatar">{user.name.slice(0, 1) || 'U'}</div>
           <div className="identity-copy">

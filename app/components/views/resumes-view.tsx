@@ -112,10 +112,10 @@ export function ResumesView({
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
-        eyebrow="Resume Studio"
+        eyebrow="Resume Hub"
         title="围绕投递目标编辑简历"
-        description="把版本链、导入预览、正文编辑和主题工具统一收进一个更专业的编辑器工作台。"
-        accent="indigo"
+        description="把版本链、导入预览和正文编辑放进一个更安静的简历工作区里。"
+        accent="brand"
         meta={
           <>
             <span className="timeline-tag">版本链</span>

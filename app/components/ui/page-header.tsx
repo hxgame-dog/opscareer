@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
+import type { WorkspaceAccent } from '@/lib/workspace-ui';
 
 type PageHeaderProps = {
   eyebrow: string;
   title: string;
   description: string;
-  accent?: 'indigo' | 'blue' | 'emerald' | 'amber' | 'slate';
+  accent?: WorkspaceAccent;
   meta?: ReactNode;
   actions?: ReactNode;
 };
@@ -13,7 +14,7 @@ export function PageHeader({
   eyebrow,
   title,
   description,
-  accent = 'slate',
+  accent = 'neutral',
   meta,
   actions
 }: PageHeaderProps) {

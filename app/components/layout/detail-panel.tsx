@@ -13,7 +13,7 @@ export function DetailPanel({ title, body, isOpen, onClose }: DetailPanelProps) 
     <aside className={`workspace-detail ${isOpen ? '' : 'workspace-detail-hidden'}`}>
       <div className="detail-header">
         <div>
-          <div className="eyebrow detail-eyebrow">Context Rail</div>
+          <div className="eyebrow detail-eyebrow">Context</div>
           <h3>{title}</h3>
         </div>
         {onClose ? (
@@ -22,7 +22,7 @@ export function DetailPanel({ title, body, isOpen, onClose }: DetailPanelProps) 
           </button>
         ) : null}
       </div>
-      <ContextSection title={title} description="与当前对象相关的编辑、摘要和下一步动作会显示在这里。">
+      <ContextSection title={title} description="这里放当前对象的补充信息、编辑入口和下一步动作。">
         {body}
       </ContextSection>
     </aside>

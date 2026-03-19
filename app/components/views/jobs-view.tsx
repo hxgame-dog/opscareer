@@ -75,15 +75,14 @@ export function JobsView({
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
-        eyebrow="Job Database"
+        eyebrow="Job Library"
         title="搜索、筛选并推进岗位"
-        description="把 JD 当作整个求职工作台的入口，围绕岗位直接发起简历优化、投递和模拟面试。"
-        accent="blue"
+        description="把 JD 当作岗位数据库来维护，并直接从岗位发起优化、投递和模拟面试。"
+        accent="brand"
         meta={
           <>
             <span className="timeline-tag">搜索 + 筛选</span>
             <span className="timeline-tag">结果区</span>
-            <span className="timeline-tag">详情联动</span>
           </>
         }
         actions={

@@ -74,15 +74,14 @@ export function MockInterviewView({
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
-        eyebrow="Interview Trainer"
+        eyebrow="Interview Practice"
         title="围绕目标岗位做一场专注训练"
-        description="把设置、当前题目和会话回顾拆开，让你的注意力始终落在当前答题上。"
-        accent="emerald"
+        description="把设置、当前题目和会话回顾拆开，让你的注意力始终留在当前回答。"
+        accent="success"
         meta={
           <>
             <span className="timeline-tag">逐题训练</span>
             <span className="timeline-tag">录音转写</span>
-            <span className="timeline-tag">总评复盘</span>
           </>
         }
         actions={

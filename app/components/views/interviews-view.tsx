@@ -67,14 +67,13 @@ export function InterviewsView({
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
-        eyebrow="Interview Tracker"
+        eyebrow="Interview Notes"
         title="沉淀真实面试与复盘"
-        description="把每轮真实面试的记录、状态和复盘放在一个更标准的管理界面里，便于后续复用和对照。"
-        accent="slate"
+        description="把每轮真实面试的记录、状态和复盘收进一个更安静的面试档案页里。"
+        accent="neutral"
         meta={
           <>
             <span className="timeline-tag">记录</span>
-            <span className="timeline-tag">筛选</span>
             <span className="timeline-tag">复盘</span>
           </>
         }

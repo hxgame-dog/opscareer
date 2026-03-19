@@ -52,14 +52,14 @@ export function ProfileView({
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
-        eyebrow="Profile Base"
-        title="维护主档信息"
-        description="把基础资料、工作经历、项目和教育沉淀成一份可靠主档，后续所有简历生成和优化都从这里出发。"
-        accent="slate"
+        eyebrow="Profile"
+        title="维护你的主档"
+        description="把基础资料、工作经历、项目和教育沉淀成一份稳定主档，后续所有简历和面试材料都从这里出发。"
+        accent="neutral"
         meta={
           <>
             <span className="timeline-tag">结构化建档</span>
-            <span className="timeline-tag">生成联动</span>
+            <span className="timeline-tag">主档联动</span>
           </>
         }
         actions={

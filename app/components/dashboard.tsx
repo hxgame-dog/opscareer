@@ -30,6 +30,16 @@ import { JobsView } from '@/app/components/views/jobs-view';
 import { MockInterviewView } from '@/app/components/views/mock-interview-view';
 import { ApplicationsView } from '@/app/components/views/applications-view';
 import { InterviewsView } from '@/app/components/views/interviews-view';
+import { PageHeader } from '@/app/components/ui/page-header';
+import { ActionBar } from '@/app/components/ui/action-bar';
+import { PanelShell } from '@/app/components/ui/panel-shell';
+import {
+  getWorkspaceNavigation,
+  getWorkspaceViewMeta,
+  type WorkspaceNavigationItem,
+  type WorkspaceView,
+  type WorkspaceViewMeta
+} from '@/lib/workspace-ui';
 
 const DEFAULT_PROFILE: ProfileInput = {
   basics: {
@@ -90,16 +100,6 @@ type DashboardProps = {
     email: string;
   };
 };
-
-type WorkspaceView =
-  | 'home'
-  | 'profile'
-  | 'resumes'
-  | 'jobs'
-  | 'mock'
-  | 'applications'
-  | 'interviews'
-  | 'settings';
 
 type ResumeVersion = {
   id: string;
@@ -173,7 +173,7 @@ export function Dashboard({ user }: DashboardProps) {
   const [apiKey, setApiKey] = useState('');
   const [activeView, setActiveView] = useState<WorkspaceView>('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(true);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [isNotebookLayout, setIsNotebookLayout] = useState(false);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [flash, setFlash] = useState<{ text: string; tone: 'success' | 'error' | 'info' } | null>(null);
@@ -300,25 +300,16 @@ export function Dashboard({ user }: DashboardProps) {
   const latestMockTurn = selectedMockInterview?.turns[selectedMockInterview.turns.length - 1] ?? null;
   const pendingMockEvaluationTurn =
     selectedMockInterview?.turns.find((turn) => turn.evaluation === null && turn.transcript.trim()) ?? null;
-  const navigation = [
-    { id: 'home', label: '首页', hint: 'Overview', icon: 'home' },
-    { id: 'profile', label: '个人档案', hint: 'Profile', icon: 'profile' },
-    { id: 'resumes', label: '简历中心', hint: 'Resumes', icon: 'resume' },
-    { id: 'jobs', label: 'JD 库', hint: 'Job postings', icon: 'job' },
-    { id: 'mock', label: '模拟面试', hint: 'Mock interview', icon: 'mock' },
-    { id: 'applications', label: '投递看板', hint: 'Applications', icon: 'application' },
-    { id: 'interviews', label: '面试记录', hint: 'Interviews', icon: 'interview' },
-    { id: 'settings', label: 'Gemini 设置', hint: 'Settings', icon: 'settings' }
-  ] as const satisfies Array<{ id: WorkspaceView; label: string; hint: string; icon: 'home' | 'profile' | 'resume' | 'job' | 'mock' | 'application' | 'interview' | 'settings' }>;
-  const viewMeta: Record<WorkspaceView, { title: string; description: string }> = {
-    home: { title: '首页', description: '今天最值得关注的内容、最近活动和快捷入口。' },
-    profile: { title: '个人档案', description: '维护你的基础信息、经历与生成偏好。' },
-    resumes: { title: '简历中心', description: '生成、优化、管理版本，并查看差异和导出。' },
-    jobs: { title: 'JD 库', description: '集中管理岗位信息，并从 JD 快速发起动作。' },
-    mock: { title: '模拟面试', description: '围绕目标 JD 进行逐题语音练习并拿到评分。' },
-    applications: { title: '投递看板', description: '按阶段推进投递，并维护详情与提醒。' },
-    interviews: { title: '面试记录', description: '管理真实面试记录、状态流转与复盘。' },
-    settings: { title: 'Gemini 设置', description: '配置模型、API Key 与账户基础操作。' }
+  const navigation: ReadonlyArray<WorkspaceNavigationItem> = getWorkspaceNavigation();
+  const viewMeta: Record<WorkspaceView, WorkspaceViewMeta> = {
+    home: getWorkspaceViewMeta('home'),
+    profile: getWorkspaceViewMeta('profile'),
+    resumes: getWorkspaceViewMeta('resumes'),
+    jobs: getWorkspaceViewMeta('jobs'),
+    mock: getWorkspaceViewMeta('mock'),
+    applications: getWorkspaceViewMeta('applications'),
+    interviews: getWorkspaceViewMeta('interviews'),
+    settings: getWorkspaceViewMeta('settings')
   };
   const applicationCount = applications.length || applicationBoard.reduce((sum, column) => sum + column.items.length, 0);
   const activeApplicationCount = applications.filter((application) =>
@@ -1820,7 +1811,8 @@ export function Dashboard({ user }: DashboardProps) {
           user={user}
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
           contextOpen={detailOpen}
-          onToggleContext={() => setDetailOpen((prev) => !prev)}
+          contextAvailable={hasContext}
+          onToggleContext={() => setDetailOpen((prev) => (hasContext ? !prev : prev))}
           onLogout={onLogout}
         />
 
@@ -2011,17 +2003,33 @@ export function Dashboard({ user }: DashboardProps) {
         ) : null}
 
         {activeView === 'settings' ? (
-          <section className="content-stack">
+          <section className="content-stack workspace-stage">
+            <PageHeader
+              eyebrow="Settings"
+              title="工作区设置"
+              description="把模型、密钥和账户入口从业务页面里拆开，单独放到更安静的设置页。"
+              accent="neutral"
+              meta={<span className="timeline-tag">系统配置</span>}
+              actions={
+                <ActionBar
+                  left={<div className="small">这里保留工作区级配置，不混入业务数据。</div>}
+                  right={
+                    <div className="inline compact-actions">
+                      <button onClick={onRefreshModels}>刷新模型</button>
+                      <button className="secondary" onClick={onLogout}>退出登录</button>
+                    </div>
+                  }
+                />
+              }
+            />
             <div className="grid-2">
-              <article className="panel">
-                <h2>Gemini 设置</h2>
+              <PanelShell eyebrow="Gemini" title="模型与 API Key" subtitle="管理当前工作区使用的 Gemini Key 和默认模型。">
                 <label>API Key</label>
                 <input value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="输入 Gemini API Key" />
-                <div className="inline">
+                <div className="inline compact-actions">
                   <button onClick={onValidateKey} disabled={isBusy('validate-key')}>
                     {isBusy('validate-key') ? '校验中...' : '校验并保存 Key'}
                   </button>
-                  <button className="secondary" onClick={onRefreshModels}>刷新模型</button>
                   <button className="warn" onClick={onSaveModel} disabled={isBusy('save-model')}>
                     {isBusy('save-model') ? '保存中...' : '保存模型'}
                   </button>
@@ -2031,15 +2039,14 @@ export function Dashboard({ user }: DashboardProps) {
                   <option value="">请选择模型</option>
                   {models.map((m) => <option key={m.name} value={m.name}>{m.name}{m.recommended ? ' (Recommended)' : ''}</option>)}
                 </select>
-              </article>
-              <article className="panel">
-                <h2>账户</h2>
-                <div className="item">
-                  <strong>{user.name}</strong>
-                  <div className="small">{user.email}</div>
+              </PanelShell>
+              <PanelShell eyebrow="Account" title="账户信息" subtitle="保持账户信息简单清晰，不打断主工作流。">
+                <div className="result-card">
+                  <div className="result-card-title">{user.name}</div>
+                  <div className="result-card-subtitle">{user.email}</div>
                 </div>
                 <button className="secondary" onClick={onLogout}>退出登录</button>
-              </article>
+              </PanelShell>
             </div>
           </section>
         ) : null}
@@ -2054,12 +2061,14 @@ export function Dashboard({ user }: DashboardProps) {
         />
       ) : null}
 
-      <DetailPanel
-        title={detailPanel.title}
-        body={detailPanel.body}
-        isOpen={detailOpen}
-        onClose={() => setDetailOpen(false)}
-      />
+      {hasContext ? (
+        <DetailPanel
+          title={detailPanel.title}
+          body={detailPanel.body}
+          isOpen={detailOpen}
+          onClose={() => setDetailOpen(false)}
+        />
+      ) : null}
       <ConfirmDialog
         open={!!confirmDialog}
         title={confirmDialog?.title ?? ''}

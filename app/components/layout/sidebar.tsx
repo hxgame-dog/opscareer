@@ -1,22 +1,9 @@
-type WorkspaceView =
-  | 'home'
-  | 'profile'
-  | 'resumes'
-  | 'jobs'
-  | 'mock'
-  | 'applications'
-  | 'interviews'
-  | 'settings';
+import type { WorkspaceNavigationItem, WorkspaceView } from '@/lib/workspace-ui';
 
 type SidebarProps = {
   activeView: WorkspaceView;
   sidebarOpen: boolean;
-  navigation: ReadonlyArray<{
-    id: WorkspaceView;
-    label: string;
-    hint: string;
-    icon: 'home' | 'profile' | 'resume' | 'job' | 'mock' | 'application' | 'interview' | 'settings';
-  }>;
+  navigation: ReadonlyArray<WorkspaceNavigationItem>;
   user: {
     name: string;
     email: string;
@@ -24,7 +11,7 @@ type SidebarProps = {
   onSelect: (view: WorkspaceView) => void;
 };
 
-function SidebarIcon({ icon }: { icon: SidebarProps['navigation'][number]['icon'] }) {
+function SidebarIcon({ icon }: { icon: WorkspaceNavigationItem['icon'] }) {
   const commonProps = {
     width: 16,
     height: 16,
