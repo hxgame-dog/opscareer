@@ -39,7 +39,7 @@ describe('workspace metadata', () => {
     expect(resumes).toEqual(
       expect.objectContaining({
         label: '简历中心',
-        hint: 'Resume hub',
+        hint: 'Resumes',
         icon: 'resume'
       })
     );

@@ -116,14 +116,14 @@ const viewMeta: Record<WorkspaceView, WorkspaceViewMeta> = {
 };
 
 const navigation: WorkspaceNavigationItem[] = [
-  { id: 'home', label: '首页', hint: 'Workspace', icon: 'home' },
-  { id: 'profile', label: '个人档案', hint: 'Profile base', icon: 'profile' },
-  { id: 'resumes', label: '简历中心', hint: 'Resume hub', icon: 'resume' },
-  { id: 'jobs', label: 'JD 库', hint: 'Job library', icon: 'job' },
-  { id: 'mock', label: '模拟面试', hint: 'Interview practice', icon: 'mock' },
-  { id: 'applications', label: '投递看板', hint: 'Applications', icon: 'application' },
-  { id: 'interviews', label: '面试记录', hint: 'Interview notes', icon: 'interview' },
-  { id: 'settings', label: 'Gemini 设置', hint: 'Settings', icon: 'settings' }
+  { id: 'home', label: '首页', hint: 'Home', icon: 'home' },
+  { id: 'profile', label: '个人档案', hint: 'Profile', icon: 'profile' },
+  { id: 'resumes', label: '简历中心', hint: 'Resumes', icon: 'resume' },
+  { id: 'jobs', label: 'JD 库', hint: 'Jobs', icon: 'job' },
+  { id: 'mock', label: '模拟面试', hint: 'Mock', icon: 'mock' },
+  { id: 'applications', label: '投递看板', hint: 'Pipeline', icon: 'application' },
+  { id: 'interviews', label: '面试记录', hint: 'Notes', icon: 'interview' },
+  { id: 'settings', label: '设置', hint: 'Settings', icon: 'settings' }
 ];
 
 export function getWorkspaceViewChrome(view: WorkspaceView) {

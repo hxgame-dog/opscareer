@@ -1824,12 +1824,15 @@ body {
 }
 
 .sidebar-link {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
   padding: 7px 8px 7px 10px;
   border-radius: 8px;
   gap: 9px;
   align-items: center;
   position: relative;
   border: 1px solid transparent;
+  text-align: left;
 }
 
 .sidebar-link:hover {
@@ -1868,6 +1871,12 @@ body {
   color: var(--muted-strong);
 }
 
+.sidebar-link-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
 .sidebar-link-active .sidebar-link-icon {
   color: var(--brand-strong);
 }
@@ -1875,12 +1884,16 @@ body {
 .sidebar-link-label {
   font-size: 0.83rem;
   line-height: 1.12;
+  white-space: nowrap;
 }
 
 .sidebar-link-hint {
   font-size: 0.64rem;
   color: var(--muted);
   line-height: 1.08;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-footer {
