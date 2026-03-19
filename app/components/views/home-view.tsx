@@ -1,7 +1,5 @@
 import { EmptyState } from '@/app/components/ui/empty-state';
-import { ActionBar } from '@/app/components/ui/action-bar';
 import { MetricChip } from '@/app/components/ui/metric-chip';
-import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { SearchBar } from '@/app/components/ui/search-bar';
@@ -93,38 +91,70 @@ export function HomeView({
 
   return (
     <section className="content-stack workspace-stage">
-      <PageHeader
+      <PanelShell
         eyebrow="Workspace"
-        title="今天的工作台"
-        description="把简历、岗位、投递和面试放在一个更安静、更顺手的主工作区里继续推进。"
-        accent="brand"
-        meta={
-          <>
-            <span className="timeline-tag">今日推进</span>
-          </>
-        }
-        actions={
-          <ActionBar
-            left={
-              <SearchBar
-                label="快速入口"
-                value=""
-                placeholder="搜索简历、JD、公司或下一步动作"
-                onChange={() => {}}
-              />
-            }
-            right={
-              <div className="inline compact-actions">
-                <button onClick={onGoResumes}>去做简历</button>
-                <button className="secondary" onClick={onGoJobs}>打开 JD 库</button>
-                <button className="ghost" onClick={onGoMock}>开始模拟面试</button>
-              </div>
-            }
-          />
-        }
-      />
+        title="今天从一件最重要的事开始。"
+        subtitle="把当前最值得推进的简历、岗位和投递集中在一个更安静的主工作区里。"
+        className="home-hero-panel"
+      >
+        <div className="home-hero-layout">
+          <div className="home-hero-copy">
+            <div className="home-hero-kicker">Today</div>
+            <h2 className="home-hero-title">从简历、岗位到投递，继续往前推进。</h2>
+            <p className="home-hero-description">
+              这里放你今天真正需要打开的内容，而不是把所有模块平均铺开。
+            </p>
+            <div className="home-hero-actions">
+              <button onClick={onGoResumes}>去做简历</button>
+              <button className="secondary" onClick={onGoJobs}>打开 JD 库</button>
+              <button className="ghost" onClick={onGoMock}>开始模拟面试</button>
+            </div>
+          </div>
 
-      <div className="metrics-strip">
+          <div className="home-hero-side">
+            <SearchBar
+              label="快速入口"
+              value=""
+              placeholder="搜索简历、JD、公司或下一步动作"
+              onChange={() => {}}
+            />
+
+            <div className="home-hero-focus-list">
+              {focusItems.length > 0 ? (
+                focusItems.slice(0, 2).map((item) => (
+                  <div key={item} className="home-hero-focus-item">
+                    <strong>下一步</strong>
+                    <div className="small">{item}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="home-hero-focus-item">
+                  <strong>状态良好</strong>
+                  <div className="small">基础资料已经齐了，建议继续推进正在进行中的投递。</div>
+                </div>
+              )}
+            </div>
+
+            <div className="home-hero-reminders">
+              <strong>即将跟进</strong>
+              {upcomingReminders.length > 0 ? (
+                upcomingReminders.slice(0, 2).map((item) => (
+                  <div key={item.id} className="home-hero-reminder">
+                    <div className="small strong">{item.title}</div>
+                    <div className="small">
+                      {item.company && item.role ? `${item.company} · ${item.role}` : item.detail}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="small">当前没有需要立刻跟进的提醒，可以优先推进主任务。</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </PanelShell>
+
+      <div className="metrics-strip metrics-strip-summary">
         <MetricChip label="Resumes" value={resumeGroupCount} hint="简历组" />
         <MetricChip label="Job Postings" value={jdCount} hint="收藏 JD" />
         <MetricChip label="Applications" value={applicationCount} hint="投递总数" />
@@ -133,52 +163,20 @@ export function HomeView({
         <MetricChip label="Interviews" value={interviewCount} hint="面试记录" />
       </div>
 
-      <div className="dashboard-hero-grid">
-        <PanelShell
-          eyebrow="Focus"
-          title="今日优先任务"
-          subtitle="把今天最值得推进的事情放在一个明确主区。"
-        >
-          <div className="dashboard-task-stack">
-            {focusItems.length > 0 ? (
-              focusItems.map((item) => (
-                <div key={item} className="dashboard-task-card">
-                  <strong>下一步</strong>
-                  <div className="small">{item}</div>
-                </div>
-              ))
-            ) : (
-              <EmptyState title="基础资料已经齐了" description="建议优先推进进行中的投递和模拟面试。" />
-            )}
-          </div>
-        </PanelShell>
-
-        <PanelShell eyebrow="Reminders" title="即将跟进" subtitle="从投递详情同步过来的提醒和下一步动作。">
-          <div className="dashboard-reminder-stack">
-            {upcomingReminders.length > 0 ? (
-              upcomingReminders.map((item) => (
-                <ResultCard
-                  key={item.id}
-                  title={item.title}
-                  subtitle={item.company && item.role ? `${item.company} · ${item.role}` : undefined}
-                  meta={
-                    <>
-                      <div className="small">{item.detail}</div>
-                      {item.reminderAt ? (
-                        <div className="timeline-tag timeline-tag-warn">
-                          提醒 {new Date(item.reminderAt).toLocaleString()}
-                        </div>
-                      ) : null}
-                    </>
-                  }
-                />
-              ))
-            ) : (
-              <EmptyState title="当前没有明确提醒" description="在投递详情里添加提醒后，这里会自动出现。" />
-            )}
-          </div>
-        </PanelShell>
-      </div>
+      <PanelShell eyebrow="Focus" title="今日推进" subtitle="保留一块完整的待办视图，但不再让它抢走首屏主舞台。">
+        <div className="dashboard-task-stack dashboard-task-stack-compact">
+          {focusItems.length > 0 ? (
+            focusItems.map((item) => (
+              <div key={item} className="dashboard-task-card">
+                <strong>下一步</strong>
+                <div className="small">{item}</div>
+              </div>
+            ))
+          ) : (
+            <EmptyState title="基础资料已经齐了" description="建议优先推进进行中的投递和模拟面试。" />
+          )}
+        </div>
+      </PanelShell>
 
       <div className="dashboard-results-grid">
         <PanelShell eyebrow="Applications" title="最近投递">

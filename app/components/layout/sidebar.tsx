@@ -92,7 +92,7 @@ export function Sidebar({ activeView, sidebarOpen, navigation, user, onSelect }:
     <aside className={`workspace-sidebar ${sidebarOpen ? 'workspace-sidebar-open' : ''}`}>
       <div className="sidebar-header">
         <div className="eyebrow">OpsCareer</div>
-        <strong>AI Workspace</strong>
+        <strong>Workspace</strong>
       </div>
       <nav className="sidebar-nav">
         {navigation.map((item) => (
@@ -102,6 +102,7 @@ export function Sidebar({ activeView, sidebarOpen, navigation, user, onSelect }:
             onClick={() => onSelect(item.id)}
             type="button"
           >
+            <span className="sidebar-link-marker" aria-hidden="true" />
             <span className="sidebar-link-icon" aria-hidden="true">
               <SidebarIcon icon={item.icon} />
             </span>
@@ -113,7 +114,7 @@ export function Sidebar({ activeView, sidebarOpen, navigation, user, onSelect }:
         ))}
       </nav>
       <div className="sidebar-footer">
-        <div className="small">{user.name}</div>
+        <div className="sidebar-footer-name">{user.name}</div>
         <div className="small">{user.email}</div>
       </div>
     </aside>
