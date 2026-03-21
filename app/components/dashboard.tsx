@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useRef, useState } from 'react';
 import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { applicationStatuses } from '@/lib/applications';
 import {
   ApplicationBoardColumn,
@@ -33,6 +34,7 @@ import { InterviewsView } from '@/app/components/views/interviews-view';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { ActionBar } from '@/app/components/ui/action-bar';
 import { PanelShell } from '@/app/components/ui/panel-shell';
+import { DEFAULT_PROFILE } from '@/lib/default-profile';
 import {
   getWorkspaceNavigation,
   getWorkspaceViewMeta,
@@ -40,44 +42,6 @@ import {
   type WorkspaceView,
   type WorkspaceViewMeta
 } from '@/lib/workspace-ui';
-
-const DEFAULT_PROFILE: ProfileInput = {
-  basics: {
-    name: '张三',
-    email: 'zhangsan@example.com',
-    phone: '13800000000',
-    location: '上海',
-    summary: '5 年后端与 SRE 经验，擅长高可用平台、自动化运维与成本优化。',
-    yearsOfExperience: 5
-  },
-  experiences: [
-    {
-      company: '示例科技',
-      role: 'SRE 工程师',
-      start: '2021-03',
-      end: '2025-03',
-      achievements: ['搭建监控体系，故障平均恢复时间下降 40%', '推动 IaC，发布效率提升 2 倍'],
-      techStack: ['Kubernetes', 'Terraform', 'Prometheus', 'Go']
-    }
-  ],
-  projects: [
-    {
-      name: '多集群稳定性治理项目',
-      role: '负责人',
-      summary: '建设统一告警与容量预测机制',
-      highlights: ['上线后 P1 故障数下降 35%', '资源利用率提升 18%']
-    }
-  ],
-  skills: ['Kubernetes', 'Terraform', 'Go', 'Linux', 'AWS'],
-  education: [
-    {
-      school: '某大学',
-      degree: '本科',
-      major: '计算机科学'
-    }
-  ],
-  language: 'zh-CN'
-};
 
 const DEFAULT_JD = {
   company: '目标公司',
@@ -99,6 +63,9 @@ type DashboardProps = {
     name: string;
     email: string;
   };
+  initialView?: WorkspaceView;
+  initialResumeId?: string;
+  initialResumeGenerated?: boolean;
 };
 
 type ResumeVersion = {
@@ -166,12 +133,19 @@ async function callApi<T>(url: string, options?: RequestInit): Promise<T> {
   return json.data;
 }
 
-export function Dashboard({ user }: DashboardProps) {
+export function Dashboard({
+  user,
+  initialView = 'home',
+  initialResumeId = '',
+  initialResumeGenerated = false
+}: DashboardProps) {
+  const router = useRouter();
   const NOTEBOOK_BREAKPOINT = 1360;
   const notebookHeavyViews: WorkspaceView[] = ['resumes', 'jobs', 'mock', 'applications', 'interviews'];
   const previousNotebookMatchRef = useRef<boolean | null>(null);
+  const initialResumeSelectionRef = useRef(false);
   const [apiKey, setApiKey] = useState('');
-  const [activeView, setActiveView] = useState<WorkspaceView>('home');
+  const [activeView, setActiveView] = useState<WorkspaceView>(initialView);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [isNotebookLayout, setIsNotebookLayout] = useState(false);
@@ -555,6 +529,17 @@ export function Dashboard({ user }: DashboardProps) {
     void onLoadApplications();
     void onLoadMockInterviews();
   }, []);
+
+  useEffect(() => {
+    if (!initialResumeId || initialResumeSelectionRef.current || resumeGroups.length === 0) return;
+    initialResumeSelectionRef.current = true;
+    setActiveView('resumes');
+    void onSelectResumeVersion(initialResumeId).then(() => {
+      if (initialResumeGenerated) {
+        appendLog('已打开刚生成的新简历版本');
+      }
+    });
+  }, [initialResumeGenerated, initialResumeId, resumeGroups]);
 
   useEffect(() => {
     return () => {
@@ -1799,6 +1784,10 @@ export function Dashboard({ user }: DashboardProps) {
         navigation={navigation}
         user={user}
         onSelect={(view) => {
+          if (view === 'profile') {
+            router.push('/resume/builder');
+            return;
+          }
           setActiveView(view);
           setSidebarOpen(false);
         }}

@@ -15,7 +15,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ai-sdk/react": "^3.0.136",
     "@prisma/client": "^6.5.0",
+    "ai": "^6.0.134",
     "bcryptjs": "^3.0.3",
     "jspdf": "^2.5.2",
     "mammoth": "^1.12.0",

@@ -137,3 +137,7 @@ export function getWorkspaceViewMeta(view: WorkspaceView) {
 export function getWorkspaceNavigation() {
   return navigation;
 }
+
+export function isWorkspaceView(value: string): value is WorkspaceView {
+  return navigation.some((item) => item.id === value);
+}

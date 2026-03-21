@@ -91,6 +91,84 @@ async function callGemini(params: {
   return { text, latencyMs: Date.now() - started };
 }
 
+export async function streamGeminiText(params: {
+  apiKey: string;
+  model: string;
+  prompt: string;
+}): Promise<ReadableStream<Uint8Array>> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${params.model}:streamGenerateContent?alt=sse&key=${params.apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: params.prompt }] }],
+        generationConfig: {
+          temperature: 0.55,
+          topP: 0.9,
+          responseMimeType: 'text/plain'
+        }
+      })
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Gemini stream failed: ${res.status} ${text}`);
+  }
+
+  if (!res.body) {
+    throw new Error('Gemini stream body is empty');
+  }
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const source = res.body.getReader();
+
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let buffer = '';
+
+      const flushEvent = (eventText: string) => {
+        const lines = eventText.split('\n').filter((line) => line.startsWith('data: '));
+        for (const line of lines) {
+          const payloadText = line.slice(6).trim();
+          if (!payloadText || payloadText === '[DONE]') continue;
+
+          const payload = JSON.parse(payloadText);
+          const text = payload?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            controller.enqueue(encoder.encode(text));
+          }
+        }
+      };
+
+      try {
+        while (true) {
+          const { value, done } = await source.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split('\n\n');
+          buffer = events.pop() ?? '';
+          for (const event of events) {
+            flushEvent(event);
+          }
+        }
+
+        if (buffer.trim()) {
+          flushEvent(buffer);
+        }
+      } catch (error) {
+        controller.error(error);
+        return;
+      }
+
+      controller.close();
+    }
+  });
+}
+
 export async function generateGeminiJson<T>(params: {
   apiKey: string;
   model: string;

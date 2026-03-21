@@ -54,7 +54,13 @@ const BodySchema = z.object({
   profile: ProfileSchema,
   style: z.string().default('professional'),
   title: z.string().optional(),
-  theme: z.enum(['CLASSIC', 'EXECUTIVE', 'MODERN']).default('CLASSIC')
+  theme: z.enum(['CLASSIC', 'EXECUTIVE', 'MODERN']).default('CLASSIC'),
+  context: z
+    .object({
+      identity: z.string().optional(),
+      targetRole: z.string().optional()
+    })
+    .optional()
 });
 
 export async function POST(req: NextRequest) {
@@ -66,7 +72,7 @@ export async function POST(req: NextRequest) {
     const profile = body.profile as ProfileInput;
     const language = (profile.language ?? 'zh-CN') as Language;
     const safeProfile = JSON.parse(sanitizePromptInput(JSON.stringify(profile)));
-    const prompt = buildResumeGeneratePrompt(safeProfile, body.style, language);
+    const prompt = buildResumeGeneratePrompt(safeProfile, body.style, language, body.context);
     const generated = await generateGeminiJson<ResumeDraft>({ apiKey, model, prompt });
     const theme = body.theme as ResumeTheme;
     const markdown = resumeToMarkdown(generated.data, theme);
@@ -103,7 +109,7 @@ export async function POST(req: NextRequest) {
         taskType: 'resume.generate',
         model,
         promptHash: hashPrompt(prompt),
-        inputSnapshot: JSON.stringify({ profile, style: body.style, theme }),
+        inputSnapshot: JSON.stringify({ profile, style: body.style, theme, context: body.context ?? null }),
         outputJson: generated.rawText,
         latencyMs: generated.latencyMs
       }
