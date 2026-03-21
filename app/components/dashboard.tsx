@@ -145,6 +145,7 @@ export function Dashboard({
   const previousNotebookMatchRef = useRef<boolean | null>(null);
   const initialResumeSelectionRef = useRef(false);
   const [apiKey, setApiKey] = useState('');
+  const [maskedApiKey, setMaskedApiKey] = useState('');
   const [activeView, setActiveView] = useState<WorkspaceView>(initialView);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -528,6 +529,7 @@ export function Dashboard({
     void onLoadInterviews();
     void onLoadApplications();
     void onLoadMockInterviews();
+    void onRefreshModels(true);
   }, []);
 
   useEffect(() => {
@@ -556,15 +558,22 @@ export function Dashboard({
   const onValidateKey = async () => {
     await withBusy('validate-key', async () => {
       try {
+      if (!apiKey.trim()) {
+        appendLog('请输入 Gemini API Key 后再校验');
+        return;
+      }
       const data = await callApi<{
         models: Array<{ name: string; recommended: boolean }>;
         selectedModel: string;
+        maskedApiKey?: string;
       }>('/api/gemini/validate-key', {
         method: 'POST',
-        body: JSON.stringify({ apiKey, selectedModel: selectedModel || undefined })
+        body: JSON.stringify({ apiKey: apiKey.trim(), selectedModel: selectedModel || undefined })
       });
       setModels(data.models);
       setSelectedModel(data.selectedModel);
+      setMaskedApiKey(data.maskedApiKey ?? '');
+      setApiKey('');
       appendLog('Gemini Key 校验成功');
       } catch (err) {
       appendLog(`Key 校验失败: ${(err as Error).message}`);
@@ -572,17 +581,23 @@ export function Dashboard({
     });
   };
 
-  const onRefreshModels = async () => {
+  const onRefreshModels = async (silent = false) => {
     try {
       const data = await callApi<{
         models: Array<{ name: string; recommended: boolean }>;
         selectedModel: string;
+        maskedApiKey?: string;
       }>('/api/gemini/models');
       setModels(data.models);
       setSelectedModel(data.selectedModel);
-      appendLog('模型列表刷新完成');
+      setMaskedApiKey(data.maskedApiKey ?? '');
+      if (!silent) {
+        appendLog('模型列表刷新完成');
+      }
     } catch (err) {
-      appendLog(`模型刷新失败: ${(err as Error).message}`);
+      if (!silent) {
+        appendLog(`模型刷新失败: ${(err as Error).message}`);
+      }
     }
   };
 
@@ -2004,7 +2019,7 @@ export function Dashboard({
                   left={<div className="small">这里保留工作区级配置，不混入业务数据。</div>}
                   right={
                     <div className="inline compact-actions">
-                      <button onClick={onRefreshModels}>刷新模型</button>
+                      <button onClick={() => void onRefreshModels()}>刷新模型</button>
                       <button className="secondary" onClick={onLogout}>退出登录</button>
                     </div>
                   }
@@ -2014,7 +2029,18 @@ export function Dashboard({
             <div className="grid-2">
               <PanelShell eyebrow="Gemini" title="模型与 API Key" subtitle="管理当前工作区使用的 Gemini Key 和默认模型。">
                 <label>API Key</label>
-                <input value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="输入 Gemini API Key" />
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder={maskedApiKey || '输入 Gemini API Key'}
+                  autoComplete="off"
+                />
+                <div className="small">
+                  {maskedApiKey
+                    ? `当前已保存 Key：${maskedApiKey}。输入新的 Key 会覆盖旧值；仅切换模型时无需重新输入。`
+                    : '当前还没有保存 Gemini Key。'}
+                </div>
                 <div className="inline compact-actions">
                   <button onClick={onValidateKey} disabled={isBusy('validate-key')}>
                     {isBusy('validate-key') ? '校验中...' : '校验并保存 Key'}

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { encrypt, maskApiKey } from '@/lib/crypto';
 import { requireCurrentUser } from '@/lib/auth-session';
 import { prisma } from '@/lib/db';
-import { validateGeminiKey } from '@/lib/gemini';
+import { pickPreferredGeminiModel, validateGeminiKey } from '@/lib/gemini';
 import { fail, ok } from '@/lib/response';
 
 const Schema = z.object({
@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
       return fail('Gemini key is invalid or no generation-capable models found.', 400);
     }
 
-    const selectedModel =
-      body.selectedModel ?? result.models.find((m) => m.recommended)?.name ?? result.models[0].name;
+    const selectedModel = pickPreferredGeminiModel(result.models, body.selectedModel);
 
     await prisma.geminiConfig.upsert({
       where: { userId: user.id },

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildResumePreviewPages,
   createBuilderProfile,
   getBuilderHeroCopy,
   getBuilderSectionStats,
@@ -92,5 +93,23 @@ describe('resume builder helpers', () => {
     expect(getBuilderSummaryPlaceholder('职场新人', '后端开发', 'technical')).toContain('系统稳定性');
     expect(getBuilderSummaryPlaceholder('学生', '策略运营', 'business')).toContain('关键数据指标');
     expect(getBuilderSummaryPlaceholder(null, '', 'general')).toContain('投递简历');
+  });
+
+  it('splits long preview content into multiple pages', () => {
+    const builder = createBuilderProfile(baseProfile);
+
+    builder.experiences = Array.from({ length: 5 }).map((_, index) => ({
+      company: `公司 ${index + 1}`,
+      role: '后端开发',
+      start: '2020-01',
+      end: '2021-01',
+      techStack: ['Go', 'Kubernetes'],
+      draft: '负责核心服务重构\n推动监控体系建设\n优化发布链路并提升稳定性',
+      polishedDraft: ''
+    }));
+
+    const pages = buildResumePreviewPages(builder, '用于分页测试的摘要。', 'technical');
+    expect(pages.length).toBeGreaterThan(1);
+    expect(pages[0].experiences.items.length).toBeGreaterThan(0);
   });
 });

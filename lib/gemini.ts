@@ -12,10 +12,31 @@ export interface GeminiModelInfo {
   recommended: boolean;
 }
 
+const PREFERRED_MODEL_ORDER = [
+  'gemini-3.1-pro-preview',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite'
+];
+
 type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
 
 function normalizeModelName(name: string) {
   return name.replace('models/', '');
+}
+
+export function pickPreferredGeminiModel(models: Array<{ name: string }>, preferred?: string) {
+  if (preferred && models.some((model) => model.name === preferred)) {
+    return preferred;
+  }
+
+  for (const candidate of PREFERRED_MODEL_ORDER) {
+    const matched = models.find((model) => model.name === candidate);
+    if (matched) return matched.name;
+  }
+
+  return models[0]?.name ?? '';
 }
 
 export async function fetchGeminiModels(apiKey: string): Promise<GeminiModelInfo[]> {
@@ -38,7 +59,8 @@ export async function fetchGeminiModels(apiKey: string): Promise<GeminiModelInfo
       recommended: false
     }));
 
-  const recommendIndex = filtered.findIndex((m) => m.name.includes('2.0-flash'));
+  const preferredModel = pickPreferredGeminiModel(filtered);
+  const recommendIndex = filtered.findIndex((m) => m.name === preferredModel);
   if (recommendIndex >= 0) {
     filtered[recommendIndex].recommended = true;
   } else if (filtered.length > 0) {

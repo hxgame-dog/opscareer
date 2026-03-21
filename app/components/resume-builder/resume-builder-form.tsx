@@ -1,6 +1,12 @@
 'use client';
 
-import type { BuilderExperience, BuilderIdentity, BuilderProject, BuilderProfile } from '@/lib/resume-builder';
+import {
+  getResumePreviewVariant,
+  type BuilderExperience,
+  type BuilderIdentity,
+  type BuilderProject,
+  type BuilderProfile
+} from '@/lib/resume-builder';
 import type { BuilderSectionStats } from '@/lib/resume-builder';
 import type { Language } from '@/types/domain';
 import { ExperienceEditor } from '@/app/components/resume-builder/experience-editor';
@@ -73,6 +79,8 @@ export function ResumeBuilderForm({
   onSave,
   onGenerate
 }: ResumeBuilderFormProps) {
+  const showTechStack = getResumePreviewVariant(targetRole) === 'technical';
+
   return (
     <div className="builder-form">
       <section className="builder-panel builder-panel-emphasis">
@@ -198,6 +206,7 @@ export function ResumeBuilderForm({
         <div className="builder-panel">
           <ExperienceEditor
             items={profile.experiences}
+            showTechStack={showTechStack}
             polishingTarget={polishingTarget}
             completion={completion}
             completionError={completionError}

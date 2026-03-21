@@ -5,6 +5,7 @@ import { AiPolishCard } from '@/app/components/resume-builder/ai-polish-card';
 
 type ExperienceEditorProps = {
   items: BuilderExperience[];
+  showTechStack: boolean;
   polishingTarget: { sectionType: 'experience' | 'project'; index: number } | null;
   completion: string;
   completionError: string;
@@ -19,6 +20,7 @@ type ExperienceEditorProps = {
 
 export function ExperienceEditor({
   items,
+  showTechStack,
   polishingTarget,
   completion,
   completionError,
@@ -72,19 +74,23 @@ export function ExperienceEditor({
                   <input value={item.end ?? ''} onChange={(event) => onChange(index, { end: event.target.value })} />
                 </div>
               </div>
-              <label>技术栈</label>
-              <input
-                value={item.techStack.join(', ')}
-                onChange={(event) =>
-                  onChange(index, {
-                    techStack: event.target.value
-                      .split(',')
-                      .map((value) => value.trim())
-                      .filter(Boolean)
-                  })
-                }
-                placeholder="Kubernetes, Go, Terraform"
-              />
+              {showTechStack ? (
+                <>
+                  <label>技术栈</label>
+                  <input
+                    value={item.techStack.join(', ')}
+                    onChange={(event) =>
+                      onChange(index, {
+                        techStack: event.target.value
+                          .split(',')
+                          .map((value) => value.trim())
+                          .filter(Boolean)
+                      })
+                    }
+                    placeholder="Kubernetes, Go, Terraform"
+                  />
+                </>
+              ) : null}
               <label>职责 / 成果草稿</label>
               <textarea
                 className="builder-large-textarea"

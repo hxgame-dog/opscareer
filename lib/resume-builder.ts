@@ -17,6 +17,20 @@ export interface BuilderSectionStats {
   completedSections: number;
 }
 
+export interface ResumePreviewPageSection<T> {
+  title: string;
+  items: T[];
+}
+
+export interface ResumePreviewPage {
+  page: number;
+  summary: string | null;
+  experiences: ResumePreviewPageSection<BuilderExperience>;
+  projects: ResumePreviewPageSection<BuilderProject>;
+  education: ResumePreviewPageSection<BuilderProfile['education'][number]>;
+  skills: string[];
+}
+
 export interface BuilderExperience {
   company: string;
   role: string;
@@ -182,4 +196,95 @@ export function getBuilderSummaryPlaceholder(identity: BuilderIdentity | null, t
   return identity
     ? `${identity}，正在整理一版更完整的投递简历，建议先确认核心经历、关键项目和能体现结果的指标。`
     : '正在整理一版更完整的投递简历，建议先确认核心经历、关键项目和能体现结果的指标。';
+}
+
+function bulletCount(text: string) {
+  return toLines(text).length;
+}
+
+function getExperienceWeight(item: BuilderExperience, variant: ResumePreviewVariant) {
+  return 1.25 + bulletCount(item.polishedDraft || item.draft) * 0.34 + (variant === 'technical' && item.techStack.length > 0 ? 0.2 : 0);
+}
+
+function getProjectWeight(item: BuilderProject, variant: ResumePreviewVariant) {
+  return 0.95 + bulletCount(item.polishedDraft || item.draft) * 0.28 + (variant === 'business' && item.summary ? 0.25 : 0);
+}
+
+export function buildResumePreviewPages(
+  profile: BuilderProfile,
+  summary: string,
+  variant: ResumePreviewVariant
+): ResumePreviewPage[] {
+  const pages: ResumePreviewPage[] = [];
+  let currentPage: ResumePreviewPage = {
+    page: 1,
+    summary,
+    experiences: { title: '工作经历', items: [] },
+    projects: { title: '项目经历', items: [] },
+    education: { title: '教育经历', items: [] },
+    skills: []
+  };
+
+  let currentWeight = 1.1;
+  const maxWeight = 7.6;
+
+  const pushPage = () => {
+    pages.push(currentPage);
+    currentPage = {
+      page: pages.length + 1,
+      summary: null,
+      experiences: { title: pages.some((page) => page.experiences.items.length > 0) ? '工作经历（续）' : '工作经历', items: [] },
+      projects: { title: pages.some((page) => page.projects.items.length > 0) ? '项目经历（续）' : '项目经历', items: [] },
+      education: { title: '教育经历', items: [] },
+      skills: []
+    };
+    currentWeight = 0.45;
+  };
+
+  for (const experience of profile.experiences) {
+    const weight = getExperienceWeight(experience, variant);
+    if (currentWeight + weight > maxWeight && currentPage.experiences.items.length + currentPage.projects.items.length > 0) {
+      pushPage();
+    }
+    currentPage.experiences.items.push(experience);
+    currentWeight += weight;
+  }
+
+  for (const project of profile.projects) {
+    const weight = getProjectWeight(project, variant);
+    if (currentWeight + weight > maxWeight && currentPage.projects.items.length > 0) {
+      pushPage();
+    }
+    currentPage.projects.items.push(project);
+    currentWeight += weight;
+  }
+
+  if (profile.education.length > 0) {
+    const educationWeight = 0.8 + profile.education.length * 0.16;
+    if (currentWeight + educationWeight > maxWeight && (currentPage.experiences.items.length > 0 || currentPage.projects.items.length > 0)) {
+      pushPage();
+    }
+    currentPage.education.items = profile.education;
+    currentWeight += educationWeight;
+  }
+
+  if (profile.skills.length > 0) {
+    const skillsWeight = 0.65 + Math.ceil(profile.skills.length / 8) * 0.12;
+    if (currentWeight + skillsWeight > maxWeight && currentPage.skills.length === 0) {
+      pushPage();
+    }
+    currentPage.skills = profile.skills;
+  }
+
+  if (
+    currentPage.summary ||
+    currentPage.experiences.items.length > 0 ||
+    currentPage.projects.items.length > 0 ||
+    currentPage.education.items.length > 0 ||
+    currentPage.skills.length > 0
+  ) {
+    pages.push(currentPage);
+  }
+
+  return pages;
 }

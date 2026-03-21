@@ -3436,6 +3436,11 @@ button:not(:disabled):active,
   border: 1px solid rgba(17, 24, 39, 0.05);
 }
 
+.resume-preview-pages {
+  display: grid;
+  gap: 18px;
+}
+
 .builder-preview-toolbar {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -3456,7 +3461,6 @@ button:not(:disabled):active,
 .resume-preview-paper {
   width: min(100%, 840px);
   min-height: 1120px;
-  aspect-ratio: 210 / 297;
   margin: 0 auto;
   padding: 40px 44px;
   background: #fff;
@@ -3465,6 +3469,19 @@ button:not(:disabled):active,
   display: grid;
   align-content: start;
   gap: 22px;
+}
+
+.resume-paper-page-counter {
+  display: inline-flex;
+  justify-self: flex-end;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f4f6fa;
+  color: var(--muted-strong);
+  font-size: 0.76rem;
+  font-weight: 600;
 }
 
 .resume-paper-header {
