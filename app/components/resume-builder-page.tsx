@@ -221,7 +221,8 @@ export function ResumeBuilderPage({
     isLoading: isPolishing,
     setCompletion
   } = useCompletion({
-    api: '/api/resume/polish'
+    api: '/api/resume/polish',
+    streamProtocol: 'text'
   });
 
   const setBusyState = (key: string, value: boolean) => setBusy((prev) => ({ ...prev, [key]: value }));
