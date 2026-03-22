@@ -3830,6 +3830,24 @@ button:not(:disabled):active,
   color: var(--brand-strong);
 }
 
+.next-step-panel .panel-shell-body {
+  display: grid;
+  gap: 10px;
+}
+
+.next-step-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.next-step-summary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .resume-paper-section-business .resume-paper-item-head span:last-child {
   color: var(--brand-strong);
   font-weight: 600;

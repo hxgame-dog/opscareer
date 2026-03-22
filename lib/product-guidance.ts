@@ -121,3 +121,122 @@ export function getBuilderPolishHint(sectionType: 'experience' | 'project', targ
   if (technical) return '适合把项目亮点整理成更有技术密度的表达，突出方案、动作和最终效果。';
   return '适合把项目亮点打磨成更专业的简历语言，突出动作、结果和量化表达。';
 }
+
+export function getResumeNextRecommendation(input: { hasResume: boolean; generatedRecently: boolean }) {
+  if (!input.hasResume) {
+    return {
+      title: '先生成第一版简历',
+      description: '主档和纸面预览都准备好后，先生成一个可管理的版本，后续优化和导出都会更顺。'
+    };
+  }
+
+  if (input.generatedRecently) {
+    return {
+      title: '下一步：按 JD 优化这版新简历',
+      description: '你刚生成了一个新版本，现在最值得做的是对准目标岗位做一次 JD 定制化优化。'
+    };
+  }
+
+  return {
+    title: '下一步：围绕目标岗位继续推进',
+    description: '可以继续按 JD 优化、切换模板导出，或者直接回到岗位库创建投递。'
+  };
+}
+
+export function getJobNextRecommendation(hasSelectedJob: boolean) {
+  if (!hasSelectedJob) {
+    return {
+      title: '先打开一个目标岗位',
+      description: '选中一条 JD 后，右侧就会出现这条岗位最适合的下一步动作。'
+    };
+  }
+
+  return {
+    title: '下一步：把岗位推进成真实动作',
+    description: '推荐优先做简历优化，然后创建投递；如果已经熟悉岗位，也可以直接开始模拟面试。'
+  };
+}
+
+export function getApplicationNextRecommendation(input: {
+  hasSelectedApplication: boolean;
+  status?: string;
+  interviewCount?: number;
+}) {
+  if (!input.hasSelectedApplication) {
+    return {
+      title: '先打开一条投递',
+      description: '选中一条投递后，这里会根据当前阶段推荐最值得继续推进的下一步动作。'
+    };
+  }
+
+  if (input.status === 'SAVED' || input.status === 'READY') {
+    return {
+      title: '下一步：把这条投递真正发出去',
+      description: '建议先确认简历版本，再把状态推进到已投递，后续提醒和面试记录就能跟上。'
+    };
+  }
+
+  if (input.status === 'APPLIED' || input.status === 'SCREENING') {
+    return {
+      title: '下一步：准备面试并留下跟进动作',
+      description: '这个阶段最值得做的是提前练一轮模拟面试，并在详情里补上下一步和提醒时间。'
+    };
+  }
+
+  if (input.status === 'INTERVIEWING') {
+    return {
+      title: '下一步：记录本轮面试并继续训练',
+      description:
+        input.interviewCount && input.interviewCount > 0
+          ? '已经进入面试中，建议及时补面试记录，再围绕岗位继续做模拟练习。'
+          : '已经进入面试阶段，建议先创建一条面试记录，再做一次针对性模拟。'
+    };
+  }
+
+  return {
+    title: '下一步：补齐收尾与复盘',
+    description: '这条投递已经进入收尾阶段，建议回看详情、补全备注或复盘，再回到岗位库继续推进新的机会。'
+  };
+}
+
+export function getMockInterviewNextRecommendation(input: {
+  hasSelectedSession: boolean;
+  status?: string;
+  hasCurrentQuestion?: boolean;
+  hasSummary?: boolean;
+  answeredCount?: number;
+  questionCount?: number;
+}) {
+  if (!input.hasSelectedSession) {
+    return {
+      title: '先开始一场模拟面试',
+      description: '选一个目标岗位开一场练习，会比直接看问题列表更容易进入训练状态。'
+    };
+  }
+
+  if (input.hasCurrentQuestion) {
+    return {
+      title: '下一步：先完成当前这道题',
+      description: `当前会话已答 ${input.answeredCount ?? 0}/${input.questionCount ?? 0} 题，先把眼前这道题讲顺，再看总评会更有价值。`
+    };
+  }
+
+  if (!input.hasSummary && input.status === 'COMPLETED') {
+    return {
+      title: '下一步：回看整场总评并沉淀记录',
+      description: '本轮已经完成，建议先看亮点和风险点，再保存到面试记录，形成真正可复用的复盘。'
+    };
+  }
+
+  if (input.hasSummary) {
+    return {
+      title: '下一步：保存这场练习并继续迭代',
+      description: '你已经拿到总评，建议先沉淀到面试记录，再回到主档或 JD 继续修正表达。'
+    };
+  }
+
+  return {
+    title: '下一步：继续完成整场练习',
+    description: '优先把剩余题目答完，完成后再统一看总评和建议，信息会更完整。'
+  };
+}

@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { ActionBar } from '@/app/components/ui/action-bar';
 import { EmptyState } from '@/app/components/ui/empty-state';
+import { NextStepPanel } from '@/app/components/ui/next-step-panel';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { ToolbarTabs } from '@/app/components/ui/toolbar-tabs';
+import { getResumeNextRecommendation } from '@/lib/product-guidance';
 import { resumeThemes } from '@/lib/resume-themes';
 import type { ResumeDiffResult, ResumeImportPreview, ResumeTheme } from '@/types/domain';
 
@@ -38,6 +40,7 @@ type ResumeDiffPayload = {
 
 type ResumesViewProps = {
   resumeId: string;
+  resumeGeneratedRecently: boolean;
   resumeTitle: string;
   resumeMarkdown: string;
   activeTheme: ResumeTheme;
@@ -52,6 +55,7 @@ type ResumesViewProps = {
   onResumeMarkdownChange: (value: string) => void;
   onGenerateResume: () => void;
   onOptimizeResume: () => void;
+  onGoJobs: () => void;
   onRenameResume: () => void;
   onSaveResumeContent: () => void;
   onImportResumeFile: (file: File) => void;
@@ -75,6 +79,7 @@ type ResumesViewProps = {
 
 export function ResumesView({
   resumeId,
+  resumeGeneratedRecently,
   resumeTitle,
   resumeMarkdown,
   activeTheme,
@@ -86,6 +91,7 @@ export function ResumesView({
   onResumeMarkdownChange,
   onGenerateResume,
   onOptimizeResume,
+  onGoJobs,
   onRenameResume,
   onSaveResumeContent,
   onImportResumeFile,
@@ -108,6 +114,10 @@ export function ResumesView({
 }: ResumesViewProps) {
   const formatTime = (value: string) => new Date(value).toLocaleString();
   const [toolTab, setToolTab] = useState<'theme' | 'diff' | 'summary'>('theme');
+  const nextRecommendation = getResumeNextRecommendation({
+    hasResume: Boolean(resumeId),
+    generatedRecently: resumeGeneratedRecently
+  });
 
   return (
     <section className="content-stack workspace-stage">
@@ -153,6 +163,26 @@ export function ResumesView({
             }
           />
         }
+      />
+
+      <NextStepPanel
+        title={nextRecommendation.title}
+        description={nextRecommendation.description}
+        actions={
+          <div className="next-step-actions">
+            <button onClick={onOptimizeResume} disabled={!resumeId || isOptimizingResume}>
+              {isOptimizingResume ? '优化中...' : '按 JD 优化'}
+            </button>
+            <button className="secondary" onClick={onGoJobs}>
+              打开岗位库
+            </button>
+          </div>
+        }
+        tags={[
+          resumeId ? '当前已有版本' : '还未生成版本',
+          ...(resumeGeneratedRecently ? ['刚生成的新版本'] : []),
+          resumeId ? '推荐继续优化再投递' : '先生成再管理版本'
+        ]}
       />
 
       <div className="resume-studio-layout">

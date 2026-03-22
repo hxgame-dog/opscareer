@@ -1,12 +1,14 @@
 import { ActionBar } from '@/app/components/ui/action-bar';
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { FilterRail } from '@/app/components/ui/filter-rail';
+import { NextStepPanel } from '@/app/components/ui/next-step-panel';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { SearchBar } from '@/app/components/ui/search-bar';
 import { ToolbarTabs } from '@/app/components/ui/toolbar-tabs';
 import { applicationStatuses } from '@/lib/applications';
+import { getApplicationNextRecommendation } from '@/lib/product-guidance';
 import type {
   ApplicationBoardColumn,
   ApplicationCard,
@@ -39,6 +41,8 @@ type ApplicationsViewProps = {
   }) => void;
   onLoadApplications: () => void;
   onOpenApplication: (id: string) => void;
+  onGoJobs: () => void;
+  onStartMockInterviewWithApplication: (application: ApplicationDetail) => void;
   onUpdateApplication: (id: string, payload: {
     status?: ApplicationStatus;
     priority?: ApplicationPriority;
@@ -65,12 +69,20 @@ export function ApplicationsView({
   onApplicationFiltersChange,
   onLoadApplications,
   onOpenApplication,
+  onGoJobs,
+  onStartMockInterviewWithApplication,
   onUpdateApplication,
   onDeleteApplication,
   onMoveApplicationByDrag,
   onDraggingApplicationIdChange,
   onDragTargetStatusChange
 }: ApplicationsViewProps) {
+  const nextRecommendation = getApplicationNextRecommendation({
+    hasSelectedApplication: Boolean(selectedApplication),
+    status: selectedApplication?.status,
+    interviewCount: selectedApplication?.interviews.length
+  });
+
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
@@ -98,6 +110,55 @@ export function ApplicationsView({
             }
             right={<button className="secondary" onClick={onLoadApplications}>刷新视图</button>}
           />
+        }
+      />
+
+      <NextStepPanel
+        title={nextRecommendation.title}
+        description={nextRecommendation.description}
+        actions={
+          selectedApplication ? (
+            <div className="next-step-actions">
+              {(selectedApplication.status === 'SAVED' || selectedApplication.status === 'READY') ? (
+                <button
+                  onClick={() =>
+                    onUpdateApplication(selectedApplication.id, {
+                      status: 'APPLIED',
+                      appliedAt: selectedApplication.appliedAt ?? new Date().toISOString()
+                    })
+                  }
+                >
+                  标记已投递
+                </button>
+              ) : null}
+              {(selectedApplication.status === 'APPLIED' ||
+                selectedApplication.status === 'SCREENING' ||
+                selectedApplication.status === 'INTERVIEWING') ? (
+                <button className="secondary" onClick={() => onStartMockInterviewWithApplication(selectedApplication)}>
+                  模拟面试
+                </button>
+              ) : null}
+              <button className="ghost" onClick={() => onOpenApplication(selectedApplication.id)}>
+                打开详情
+              </button>
+              {(selectedApplication.status === 'OFFER' ||
+                selectedApplication.status === 'REJECTED' ||
+                selectedApplication.status === 'WITHDRAWN') ? (
+                <button className="secondary" onClick={onGoJobs}>
+                  回到岗位库
+                </button>
+              ) : null}
+            </div>
+          ) : null
+        }
+        tags={
+          selectedApplication
+            ? [
+                `${selectedApplication.company} · ${selectedApplication.role}`,
+                selectedApplication.status,
+                `面试 ${selectedApplication.interviews.length} 轮`
+              ]
+            : ['请选择一条投递', '选中后出现推荐动作']
         }
       />
 

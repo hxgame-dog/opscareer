@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { ActionBar } from '@/app/components/ui/action-bar';
 import { EmptyState } from '@/app/components/ui/empty-state';
+import { NextStepPanel } from '@/app/components/ui/next-step-panel';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { ToolbarTabs } from '@/app/components/ui/toolbar-tabs';
 import { getMockInterviewCategoryLabel } from '@/lib/mock-interview';
+import { getMockInterviewNextRecommendation } from '@/lib/product-guidance';
 import type { Language, MockInterviewEvaluation, MockInterviewListItem, MockInterviewQuestion, MockInterviewSession } from '@/types/domain';
 
 type JobPostingRecord = {
@@ -70,6 +72,14 @@ export function MockInterviewView({
   isStartingMockInterview
 }: MockInterviewViewProps) {
   const [reviewTab, setReviewTab] = useState<'summary' | 'history'>('summary');
+  const nextRecommendation = getMockInterviewNextRecommendation({
+    hasSelectedSession: Boolean(selectedMockInterview),
+    status: selectedMockInterview?.status,
+    hasCurrentQuestion: Boolean(currentMockQuestion),
+    hasSummary: Boolean(selectedMockInterview?.summary),
+    answeredCount: selectedMockInterview?.turns.length,
+    questionCount: selectedMockInterview?.questionCount
+  });
 
   return (
     <section className="content-stack workspace-stage">
@@ -125,6 +135,52 @@ export function MockInterviewView({
               </div>
             }
           />
+        }
+      />
+
+      <NextStepPanel
+        title={nextRecommendation.title}
+        description={nextRecommendation.description}
+        tags={
+          selectedMockInterview
+            ? [
+                `${selectedMockInterview.company} · ${selectedMockInterview.role}`,
+                `${selectedMockInterview.status}`,
+                `已答 ${selectedMockInterview.turns.length}/${selectedMockInterview.questionCount} 题`
+              ]
+            : ['先选岗位', '可录音转写', '逐题评分']
+        }
+        actions={
+          <div className="inline compact-actions">
+            {!selectedMockInterview ? (
+              <button onClick={onStartMockInterview} disabled={isStartingMockInterview}>
+                {isStartingMockInterview ? '创建中...' : '开始模拟'}
+              </button>
+            ) : currentMockQuestion ? (
+              <>
+                <button onClick={onToggleMockInterviewRecording} disabled={isSubmittingMockTurn}>
+                  {isRecordingMockInterview ? '结束录音并提交' : '开始录音回答'}
+                </button>
+                {pendingMockEvaluationTurn?.questionId === currentMockQuestion.id ? (
+                  <button
+                    className="warn"
+                    onClick={() => onSubmitMockInterviewAnswer(currentMockQuestion.id, true)}
+                    disabled={isSubmittingMockTurn}
+                  >
+                    重试评分
+                  </button>
+                ) : null}
+              </>
+            ) : selectedMockInterview.summary ? (
+              <button className="warn" onClick={onSaveMockInterviewToTracker}>
+                保存到 Interview Tracker
+              </button>
+            ) : (
+              <button className="secondary" onClick={onLoadMockInterviews}>
+                刷新历史
+              </button>
+            )}
+          </div>
         }
       />
 

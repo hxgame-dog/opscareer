@@ -1,11 +1,13 @@
 import { EmptyState } from '@/app/components/ui/empty-state';
 import { ActionBar } from '@/app/components/ui/action-bar';
 import { FilterRail } from '@/app/components/ui/filter-rail';
+import { NextStepPanel } from '@/app/components/ui/next-step-panel';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { SearchBar } from '@/app/components/ui/search-bar';
 import { StatusBadge } from '@/app/components/ui/status-badge';
+import { getJobNextRecommendation } from '@/lib/product-guidance';
 import type { Language } from '@/types/domain';
 
 type JobPostingRecord = {
@@ -71,6 +73,7 @@ export function JobsView({
   isSavingCurrentJd
 }: JobsViewProps) {
   const formatTime = (value: string) => new Date(value).toLocaleString();
+  const nextRecommendation = getJobNextRecommendation(Boolean(selectedJobPosting));
 
   return (
     <section className="content-stack workspace-stage">
@@ -103,6 +106,30 @@ export function JobsView({
             }
           />
         }
+      />
+
+      <NextStepPanel
+        title={nextRecommendation.title}
+        description={nextRecommendation.description}
+        actions={
+          selectedJobPosting ? (
+            <div className="next-step-actions">
+              <button className="secondary" onClick={() => onOptimizeWithJobPosting(selectedJobPosting)}>
+                简历优化
+              </button>
+              <button onClick={() => onCreateApplicationFromJd(selectedJobPosting)}>
+                创建投递
+              </button>
+              <button className="ghost" onClick={() => onStartMockInterviewWithJobPosting(selectedJobPosting)}>
+                模拟面试
+              </button>
+            </div>
+          ) : null
+        }
+        tags={[
+          selectedJobPosting ? `${selectedJobPosting.company} · ${selectedJobPosting.role}` : '请选择一条岗位',
+          selectedJobPosting ? '先优化，再投递' : '选中后出现推荐动作'
+        ]}
       />
 
       <div className="jobs-stage-layout">

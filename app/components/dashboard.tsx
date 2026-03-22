@@ -1883,6 +1883,7 @@ export function Dashboard({
         {activeView === 'resumes' ? (
           <ResumesView
             resumeId={resumeId}
+            resumeGeneratedRecently={initialResumeGenerated && resumeId === initialResumeId}
             resumeTitle={resumeTitle}
             resumeMarkdown={resumeMarkdown}
             activeTheme={activeTheme}
@@ -1894,6 +1895,7 @@ export function Dashboard({
             onResumeMarkdownChange={setResumeMarkdown}
             onGenerateResume={onGenerateResume}
             onOptimizeResume={onOptimizeResume}
+            onGoJobs={() => setActiveView('jobs')}
             onRenameResume={onRenameResume}
             onSaveResumeContent={onSaveResumeContent}
             onImportResumeFile={(file) => void onImportResumeFile(file)}
@@ -1983,6 +1985,8 @@ export function Dashboard({
             onApplicationFiltersChange={setApplicationFilters}
             onLoadApplications={() => void onLoadApplications()}
             onOpenApplication={(id) => void onOpenApplication(id)}
+            onGoJobs={() => setActiveView('jobs')}
+            onStartMockInterviewWithApplication={(application) => void onStartMockInterviewWithApplication(application)}
             onUpdateApplication={(id, payload) => void onUpdateApplication(id, payload)}
             onDeleteApplication={(application) => void onDeleteApplication(application)}
             onMoveApplicationByDrag={(application, status) => void onMoveApplicationByDrag(application, status)}
