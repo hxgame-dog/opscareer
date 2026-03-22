@@ -504,6 +504,7 @@ export function ResumeBuilderPage({
                       className={previewTemplate === option.value ? 'builder-template-tab is-active' : 'builder-template-tab'}
                       onClick={() => setPreviewTemplate(option.value)}
                     >
+                      {previewTemplate === option.value ? <span className="builder-template-current-badge">当前</span> : null}
                       <TemplateThumbnail template={option.value} />
                       <div className="builder-template-tab-copy">
                         <strong>{option.label}</strong>
