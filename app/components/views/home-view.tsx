@@ -4,6 +4,7 @@ import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { SearchBar } from '@/app/components/ui/search-bar';
 import { StatusBadge } from '@/app/components/ui/status-badge';
+import { getHomePrimaryTask } from '@/lib/product-guidance';
 
 type ApplicationCard = {
   id: string;
@@ -82,12 +83,44 @@ export function HomeView({
   onOpenApplication,
   onOpenMockInterview
 }: HomeViewProps) {
+  const primaryTask = getHomePrimaryTask({
+    resumeGroupCount,
+    jdCount,
+    applicationCount,
+    activeApplicationCount,
+    mockInterviewCount,
+    recentApplications: recentApplications.map((item) => ({ id: item.id, company: item.company, role: item.role })),
+    recentMockInterviews: recentMockInterviews.map((item) => ({ id: item.id, company: item.company, role: item.role }))
+  });
+
   const focusItems = [
     resumeGroupCount === 0 ? '先生成第一份简历，建立版本基线。' : null,
     jdCount === 0 ? '保存目标岗位到 JD 库，后续优化和模拟面试都会复用。' : null,
     applicationCount === 0 ? '从 JD 库创建第一条投递，让整个工作台真正串起来。' : null,
     mockInterviewCount === 0 ? '挑一个目标岗位做一次模拟面试，先拿到第一轮反馈。' : null
   ].filter(Boolean) as string[];
+
+  const handlePrimaryTask = () => {
+    if (primaryTask.action === 'resumes') {
+      onGoResumes();
+      return;
+    }
+    if (primaryTask.action === 'jobs') {
+      onGoJobs();
+      return;
+    }
+    if (primaryTask.action === 'mock') {
+      onGoMock();
+      return;
+    }
+    if (primaryTask.action === 'application') {
+      onOpenApplication(primaryTask.targetId);
+      return;
+    }
+    if (primaryTask.action === 'mock-session') {
+      onOpenMockInterview(primaryTask.targetId);
+    }
+  };
 
   return (
     <section className="content-stack workspace-stage">
@@ -100,14 +133,12 @@ export function HomeView({
         <div className="home-hero-layout">
           <div className="home-hero-copy">
             <div className="home-hero-kicker">Today</div>
-            <h2 className="home-hero-title">从简历、岗位到投递，继续往前推进。</h2>
-            <p className="home-hero-description">
-              这里放你今天真正需要打开的内容，而不是把所有模块平均铺开。
-            </p>
+            <h2 className="home-hero-title">{primaryTask.title}</h2>
+            <p className="home-hero-description">{primaryTask.description}</p>
             <div className="home-hero-actions">
-              <button onClick={onGoResumes}>去做简历</button>
-              <button className="secondary" onClick={onGoJobs}>打开 JD 库</button>
-              <button className="ghost" onClick={onGoMock}>开始模拟面试</button>
+              <button onClick={handlePrimaryTask}>开始这一步</button>
+              <button className="secondary" onClick={onGoResumes}>简历工作台</button>
+              <button className="ghost" onClick={onGoJobs}>岗位库</button>
             </div>
           </div>
 
@@ -163,7 +194,7 @@ export function HomeView({
         <MetricChip label="Interviews" value={interviewCount} hint="面试记录" />
       </div>
 
-      <PanelShell eyebrow="Focus" title="今日推进" subtitle="保留一块完整的待办视图，但不再让它抢走首屏主舞台。">
+      <PanelShell eyebrow="Next" title="今日推进" subtitle="把下一步拆成几个容易开始的小动作，减少犹豫。">
         <div className="dashboard-task-stack dashboard-task-stack-compact">
           {focusItems.length > 0 ? (
             focusItems.map((item) => (

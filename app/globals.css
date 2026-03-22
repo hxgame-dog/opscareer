@@ -3314,6 +3314,27 @@ button:not(:disabled):active,
   line-height: 1.5;
 }
 
+.builder-step-note-accent {
+  background: linear-gradient(180deg, rgba(238, 241, 255, 0.98), rgba(248, 250, 252, 0.96));
+  border-style: solid;
+  border-color: rgba(91, 108, 255, 0.12);
+  color: var(--ink);
+  display: grid;
+  gap: 4px;
+}
+
+.builder-step-note-progress {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.builder-inline-hint {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
 .builder-large-textarea {
   min-height: 156px;
 }

@@ -11,6 +11,7 @@ import type { BuilderSectionStats } from '@/lib/resume-builder';
 import type { Language } from '@/types/domain';
 import { ExperienceEditor } from '@/app/components/resume-builder/experience-editor';
 import { ProjectEditor } from '@/app/components/resume-builder/project-editor';
+import { getBuilderCompletionGuidance } from '@/lib/product-guidance';
 
 type PolishTarget = { sectionType: 'experience' | 'project'; index: number } | null;
 
@@ -80,6 +81,7 @@ export function ResumeBuilderForm({
   onGenerate
 }: ResumeBuilderFormProps) {
   const showTechStack = getResumePreviewVariant(targetRole) === 'technical';
+  const completionGuidance = getBuilderCompletionGuidance(profile);
 
   return (
     <div className="builder-form">
@@ -104,6 +106,13 @@ export function ResumeBuilderForm({
           <span className="builder-metric-chip">项目 {sectionStats.projects} 个</span>
           <span className="builder-metric-chip">技能 {sectionStats.skills} 项</span>
           <span className="builder-metric-chip">完成 {sectionStats.completedSections}/5 区块</span>
+        </div>
+        <div className="builder-step-note builder-step-note-accent">
+          <strong>{completionGuidance.nextTitle}</strong>
+          <span>{completionGuidance.nextDescription}</span>
+          <span className="builder-step-note-progress">
+            当前完成度 {completionGuidance.completed}/{completionGuidance.total}
+          </span>
         </div>
       </section>
 
@@ -207,6 +216,7 @@ export function ResumeBuilderForm({
           <ExperienceEditor
             items={profile.experiences}
             showTechStack={showTechStack}
+            targetRole={targetRole}
             polishingTarget={polishingTarget}
             completion={completion}
             completionError={completionError}
@@ -226,6 +236,7 @@ export function ResumeBuilderForm({
         <div className="builder-panel">
           <ProjectEditor
             items={profile.projects}
+            targetRole={targetRole}
             polishingTarget={polishingTarget}
             completion={completion}
             completionError={completionError}

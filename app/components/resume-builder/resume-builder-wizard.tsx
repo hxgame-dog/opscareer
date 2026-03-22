@@ -60,7 +60,10 @@ export function ResumeBuilderWizard({
               </button>
             ))}
           </div>
-          <div className="builder-step-note">这一步不会写入数据库，只在当前简历工作台会话中生效。</div>
+          <div className="builder-step-note">
+            <strong>先对齐表达语气</strong>
+            <span>这一步不会写入数据库，只在当前简历工作台会话中生效，用来决定 AI 该用什么成熟度去改写内容。</span>
+          </div>
           <div className="builder-actions">
             <button type="button" disabled={!identity} onClick={onNext}>
               继续
@@ -87,7 +90,10 @@ export function ResumeBuilderWizard({
           </div>
           <label>自定义目标岗位</label>
           <input value={targetRole} onChange={(event) => onTargetRoleChange(event.target.value)} placeholder="例如：后端开发 / 平台工程师" />
-          <div className="builder-step-note">后续 AI 会优先使用这个岗位语境，按 STAR 方式改写经历与项目。</div>
+          <div className="builder-step-note">
+            <strong>先锁定目标岗位</strong>
+            <span>后续 AI 会优先使用这个岗位语境，按 STAR 方式改写经历与项目，并让右侧纸面预览更像最终投递版本。</span>
+          </div>
           <div className="builder-actions">
             <button className="ghost button-compact" type="button" onClick={onBack}>
               返回上一步

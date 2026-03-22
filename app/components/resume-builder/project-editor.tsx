@@ -2,9 +2,11 @@
 
 import type { BuilderProject } from '@/lib/resume-builder';
 import { AiPolishCard } from '@/app/components/resume-builder/ai-polish-card';
+import { getBuilderPolishHint } from '@/lib/product-guidance';
 
 type ProjectEditorProps = {
   items: BuilderProject[];
+  targetRole: string;
   polishingTarget: { sectionType: 'experience' | 'project'; index: number } | null;
   completion: string;
   completionError: string;
@@ -19,6 +21,7 @@ type ProjectEditorProps = {
 
 export function ProjectEditor({
   items,
+  targetRole,
   polishingTarget,
   completion,
   completionError,
@@ -90,6 +93,7 @@ export function ProjectEditor({
                   {isActive && isPolishing ? '润色中...' : '✨ AI 深度润色'}
                 </button>
               </div>
+              <div className="builder-inline-hint">{getBuilderPolishHint('project', targetRole)}</div>
 
               {isActive ? (
                 <AiPolishCard
