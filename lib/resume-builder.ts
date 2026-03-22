@@ -2,6 +2,13 @@ import type { Language, ProfileInput } from '@/types/domain';
 
 export type BuilderIdentity = '学生' | '职场新人' | '资深职场人';
 export type ResumePreviewVariant = 'technical' | 'business' | 'general';
+export type ResumePreviewTemplate =
+  | 'notion-clean'
+  | 'compact-pro'
+  | 'executive-mono'
+  | 'product-story'
+  | 'minimal-grid';
+export type ResumePreviewSectionKey = 'summary' | 'experiences' | 'projects' | 'education' | 'skills';
 
 export interface BuilderHeroCopy {
   eyebrow: string;
@@ -15,6 +22,12 @@ export interface BuilderSectionStats {
   skills: number;
   education: number;
   completedSections: number;
+}
+
+export interface ResumePreviewTemplateMeta {
+  value: ResumePreviewTemplate;
+  label: string;
+  description: string;
 }
 
 export interface ResumePreviewPageSection<T> {
@@ -55,6 +68,26 @@ export interface BuilderProfile {
   projects: BuilderProject[];
   skills: string[];
   education: ProfileInput['education'];
+}
+
+const RESUME_PREVIEW_TEMPLATES: ResumePreviewTemplateMeta[] = [
+  { value: 'notion-clean', label: 'Notion', description: '文档感' },
+  { value: 'compact-pro', label: 'Compact', description: '高密度' },
+  { value: 'executive-mono', label: 'Executive', description: '稳重版' },
+  { value: 'product-story', label: 'Product', description: '结果导向' },
+  { value: 'minimal-grid', label: 'Grid', description: '分栏感' }
+];
+
+export function getResumePreviewTemplates(): ResumePreviewTemplate[] {
+  return RESUME_PREVIEW_TEMPLATES.map((item) => item.value);
+}
+
+export function getResumePreviewTemplateMeta(template: ResumePreviewTemplate): ResumePreviewTemplateMeta {
+  return RESUME_PREVIEW_TEMPLATES.find((item) => item.value === template) ?? RESUME_PREVIEW_TEMPLATES[0];
+}
+
+export function getResumePreviewTemplateOptions(): ResumePreviewTemplateMeta[] {
+  return RESUME_PREVIEW_TEMPLATES;
 }
 
 function joinLines(lines: string[]) {
@@ -132,6 +165,25 @@ export function getResumePreviewVariant(targetRole: string): ResumePreviewVarian
   }
 
   return 'general';
+}
+
+export function getResumePreviewTemplateOrder(
+  template: ResumePreviewTemplate,
+  variant: ResumePreviewVariant
+): ResumePreviewSectionKey[] {
+  if (template === 'compact-pro' || (variant === 'technical' && template === 'minimal-grid')) {
+    return ['summary', 'skills', 'experiences', 'projects', 'education'];
+  }
+
+  if (template === 'product-story' || variant === 'business') {
+    return ['summary', 'projects', 'experiences', 'education', 'skills'];
+  }
+
+  if (template === 'executive-mono') {
+    return ['summary', 'experiences', 'education', 'projects', 'skills'];
+  }
+
+  return ['summary', 'experiences', 'projects', 'education', 'skills'];
 }
 
 export function getBuilderHeroCopy(

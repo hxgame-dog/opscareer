@@ -11,11 +11,14 @@ import {
   createBuilderProfile,
   getBuilderHeroCopy,
   getBuilderSectionStats,
+  getResumePreviewTemplateMeta,
+  getResumePreviewTemplateOptions,
   getResumePreviewVariant,
   type BuilderExperience,
   type BuilderIdentity,
   type BuilderProfile,
   type BuilderProject,
+  type ResumePreviewTemplate,
   toProfileInput
 } from '@/lib/resume-builder';
 import { getWorkspaceNavigation, getWorkspaceViewMeta, type WorkspaceView } from '@/lib/workspace-ui';
@@ -66,6 +69,27 @@ const viewMeta = {
   interviews: getWorkspaceViewMeta('interviews'),
   settings: getWorkspaceViewMeta('settings')
 } satisfies Record<WorkspaceView, ReturnType<typeof getWorkspaceViewMeta>>;
+
+function TemplateThumbnail({ template }: { template: ResumePreviewTemplate }) {
+  return (
+    <div className={`builder-template-thumb builder-template-thumb-${template}`} aria-hidden="true">
+      <div className="builder-template-thumb-header">
+        <span className="builder-template-thumb-title" />
+        <span className="builder-template-thumb-meta" />
+      </div>
+      <div className="builder-template-thumb-body">
+        <span className="builder-template-thumb-line builder-template-thumb-line-lg" />
+        <span className="builder-template-thumb-line" />
+        <span className="builder-template-thumb-line builder-template-thumb-line-short" />
+      </div>
+      <div className="builder-template-thumb-sections">
+        <span className="builder-template-thumb-chip" />
+        <span className="builder-template-thumb-chip" />
+        <span className="builder-template-thumb-chip" />
+      </div>
+    </div>
+  );
+}
 
 function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
   switch (action.type) {
@@ -205,6 +229,7 @@ export function ResumeBuilderPage({
   const [flash, setFlash] = useState<{ tone: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [polishingTarget, setPolishingTarget] = useState<PolishTarget>(null);
   const [debouncedProfile, setDebouncedProfile] = useState(createBuilderProfile(DEFAULT_PROFILE));
+  const [previewTemplate, setPreviewTemplate] = useState<ResumePreviewTemplate>('notion-clean');
 
   const [state, dispatch] = useReducer(builderReducer, {
     step: 'wizard-identity',
@@ -259,6 +284,7 @@ export function ResumeBuilderPage({
   );
   const sectionStats = useMemo(() => getBuilderSectionStats(state.profile), [state.profile]);
   const previewVariant = useMemo(() => getResumePreviewVariant(state.targetRole), [state.targetRole]);
+  const previewTemplateMeta = useMemo(() => getResumePreviewTemplateMeta(previewTemplate), [previewTemplate]);
 
   const saveProfile = async () => {
     setBusyState('save-profile', true);
@@ -460,9 +486,39 @@ export function ResumeBuilderPage({
                   <span className="builder-metric-chip">
                     {previewVariant === 'technical' ? '技术向' : previewVariant === 'business' ? '业务向' : '通用'}
                   </span>
+                  <span className="builder-metric-chip">{previewTemplateMeta.label}</span>
                 </div>
               </section>
-              <ResumePreview identity={state.identity} targetRole={state.targetRole} profile={debouncedProfile} />
+              <section className="builder-panel builder-preview-template-strip">
+                <div className="builder-preview-template-copy">
+                  <div className="builder-eyebrow">Template</div>
+                  <p className="small">选择一种更适合当前岗位的简洁简历版式，实时对比纸面观感。</p>
+                </div>
+                <div className="builder-template-tabs" role="tablist" aria-label="选择简历预览模板">
+                  {getResumePreviewTemplateOptions().map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={previewTemplate === option.value}
+                      className={previewTemplate === option.value ? 'builder-template-tab is-active' : 'builder-template-tab'}
+                      onClick={() => setPreviewTemplate(option.value)}
+                    >
+                      <TemplateThumbnail template={option.value} />
+                      <div className="builder-template-tab-copy">
+                        <strong>{option.label}</strong>
+                        <span>{option.description}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+              <ResumePreview
+                identity={state.identity}
+                targetRole={state.targetRole}
+                profile={debouncedProfile}
+                template={previewTemplate}
+              />
             </div>
           }
         />

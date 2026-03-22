@@ -3458,6 +3458,170 @@ button:not(:disabled):active,
   flex-wrap: wrap;
 }
 
+.builder-preview-template-strip {
+  display: grid;
+  gap: 14px;
+}
+
+.builder-preview-template-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.builder-template-tabs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(150px, 1fr);
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.builder-template-tab {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid rgba(91, 108, 255, 0.12);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--muted-strong);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.builder-template-tab strong {
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.builder-template-tab-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.builder-template-tab span {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.builder-template-tab:hover {
+  border-color: rgba(91, 108, 255, 0.28);
+  background: rgba(244, 246, 255, 0.96);
+  transform: translateY(-1px);
+}
+
+.builder-template-tab.is-active {
+  border-color: rgba(91, 108, 255, 0.34);
+  background: rgba(238, 241, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(91, 108, 255, 0.12);
+}
+
+.builder-template-tab.is-active strong,
+.builder-template-tab.is-active span {
+  color: var(--brand-strong);
+}
+
+.builder-template-thumb {
+  display: grid;
+  gap: 10px;
+  min-height: 92px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 24, 39, 0.05);
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fd 100%);
+}
+
+.builder-template-thumb-header,
+.builder-template-thumb-body,
+.builder-template-thumb-sections {
+  display: grid;
+  gap: 6px;
+}
+
+.builder-template-thumb-header {
+  grid-template-columns: minmax(0, 1fr) 34px;
+  align-items: center;
+}
+
+.builder-template-thumb-title,
+.builder-template-thumb-meta,
+.builder-template-thumb-line,
+.builder-template-thumb-chip {
+  display: block;
+  border-radius: 999px;
+  background: rgba(90, 100, 130, 0.12);
+}
+
+.builder-template-thumb-title {
+  height: 8px;
+  width: 72%;
+}
+
+.builder-template-thumb-meta {
+  height: 8px;
+  width: 100%;
+}
+
+.builder-template-thumb-line {
+  height: 7px;
+  width: 100%;
+}
+
+.builder-template-thumb-line-lg {
+  width: 88%;
+}
+
+.builder-template-thumb-line-short {
+  width: 56%;
+}
+
+.builder-template-thumb-sections {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.builder-template-thumb-chip {
+  height: 18px;
+}
+
+.builder-template-thumb-notion-clean {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8fb 100%);
+}
+
+.builder-template-thumb-compact-pro {
+  gap: 8px;
+}
+
+.builder-template-thumb-compact-pro .builder-template-thumb-line {
+  height: 6px;
+}
+
+.builder-template-thumb-executive-mono {
+  background: linear-gradient(180deg, #ffffff 0%, #f5f6f9 100%);
+  box-shadow: inset 0 -2px 0 rgba(17, 24, 39, 0.08);
+}
+
+.builder-template-thumb-product-story .builder-template-thumb-title,
+.builder-template-thumb-product-story .builder-template-thumb-chip:first-child {
+  background: rgba(91, 108, 255, 0.2);
+}
+
+.builder-template-thumb-product-story .builder-template-thumb-body {
+  gap: 8px;
+}
+
+.builder-template-thumb-minimal-grid .builder-template-thumb-sections {
+  grid-template-columns: 1.3fr 0.7fr;
+}
+
+.builder-template-thumb-minimal-grid .builder-template-thumb-chip:last-child {
+  display: none;
+}
+
 .resume-preview-paper {
   width: min(100%, 840px);
   min-height: 1120px;
@@ -3628,6 +3792,114 @@ button:not(:disabled):active,
   font-weight: 600;
 }
 
+.resume-preview-paper-notion-clean .resume-paper-header {
+  border-bottom-style: solid;
+}
+
+.resume-preview-paper-notion-clean .resume-paper-section {
+  gap: 12px;
+}
+
+.resume-preview-paper-compact-pro {
+  padding: 32px 34px;
+  gap: 16px;
+}
+
+.resume-preview-paper-compact-pro .resume-paper-header {
+  padding-bottom: 12px;
+}
+
+.resume-preview-paper-compact-pro .resume-paper-stack {
+  gap: 10px;
+}
+
+.resume-preview-paper-compact-pro .resume-paper-item {
+  gap: 6px;
+}
+
+.resume-preview-paper-compact-pro .resume-paper-item ul {
+  line-height: 1.42;
+}
+
+.resume-preview-paper-compact-pro .resume-paper-skills {
+  gap: 6px;
+}
+
+.resume-preview-paper-executive-mono {
+  box-shadow: 0 20px 44px rgba(17, 24, 39, 0.09);
+}
+
+.resume-preview-paper-executive-mono .resume-paper-header {
+  border-bottom: none;
+  padding-bottom: 12px;
+  position: relative;
+}
+
+.resume-preview-paper-executive-mono .resume-paper-header::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(17, 24, 39, 0.78), rgba(17, 24, 39, 0.08));
+}
+
+.resume-preview-paper-executive-mono .resume-paper-section h2 {
+  color: #202533;
+  letter-spacing: 0.08em;
+}
+
+.resume-preview-paper-executive-mono .resume-paper-header-tags span,
+.resume-preview-paper-executive-mono .resume-paper-skills span {
+  background: #f5f6f8;
+  color: #2e3444;
+}
+
+.resume-preview-paper-product-story .resume-paper-section {
+  gap: 12px;
+}
+
+.resume-preview-paper-product-story .resume-paper-section h2 {
+  color: var(--brand-strong);
+}
+
+.resume-preview-paper-product-story .resume-paper-item {
+  padding-left: 14px;
+  border-left: 2px solid rgba(91, 108, 255, 0.14);
+}
+
+.resume-preview-paper-product-story .resume-paper-summary-callout {
+  background: rgba(238, 241, 255, 0.78);
+  border-color: rgba(91, 108, 255, 0.18);
+}
+
+.resume-preview-paper-minimal-grid .resume-paper-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+}
+
+.resume-preview-paper-minimal-grid .resume-paper-section {
+  gap: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #eef1f5;
+}
+
+.resume-preview-paper-minimal-grid .resume-paper-item-head {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.resume-preview-paper-minimal-grid .resume-paper-item-head span:last-child {
+  grid-column: 2;
+}
+
+.resume-preview-paper-minimal-grid .resume-paper-item-head span:nth-child(2) {
+  grid-column: 1;
+}
+
+.resume-preview-paper-minimal-grid .resume-paper-skills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 @media (max-width: 1360px) {
   .resume-builder-layout {
     grid-template-columns: 1fr;
@@ -3643,7 +3915,9 @@ button:not(:disabled):active,
   .builder-choice-grid-compact,
   .builder-grid-2,
   .builder-polish-columns,
-  .resume-paper-item-head {
+  .resume-paper-item-head,
+  .resume-preview-paper-minimal-grid .resume-paper-skills,
+  .resume-preview-paper-minimal-grid .resume-paper-header {
     grid-template-columns: 1fr;
   }
 

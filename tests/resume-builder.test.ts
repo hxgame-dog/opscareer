@@ -3,6 +3,9 @@ import {
   buildResumePreviewPages,
   createBuilderProfile,
   getBuilderHeroCopy,
+  getResumePreviewTemplateMeta,
+  getResumePreviewTemplateOrder,
+  getResumePreviewTemplates,
   getBuilderSectionStats,
   getBuilderSummaryPlaceholder,
   getResumePreviewVariant,
@@ -111,5 +114,51 @@ describe('resume builder helpers', () => {
     const pages = buildResumePreviewPages(builder, '用于分页测试的摘要。', 'technical');
     expect(pages.length).toBeGreaterThan(1);
     expect(pages[0].experiences.items.length).toBeGreaterThan(0);
+  });
+
+  it('exposes five resume preview templates with stable metadata', () => {
+    const templates = getResumePreviewTemplates();
+
+    expect(templates).toHaveLength(5);
+    expect(templates).toEqual([
+      'notion-clean',
+      'compact-pro',
+      'executive-mono',
+      'product-story',
+      'minimal-grid'
+    ]);
+
+    expect(getResumePreviewTemplateMeta('notion-clean')).toMatchObject({
+      label: 'Notion',
+      description: '文档感'
+    });
+    expect(getResumePreviewTemplateMeta('product-story')).toMatchObject({
+      label: 'Product',
+      description: '结果导向'
+    });
+  });
+
+  it('provides template-specific section ordering', () => {
+    expect(getResumePreviewTemplateOrder('compact-pro', 'technical')).toEqual([
+      'summary',
+      'skills',
+      'experiences',
+      'projects',
+      'education'
+    ]);
+    expect(getResumePreviewTemplateOrder('product-story', 'business')).toEqual([
+      'summary',
+      'projects',
+      'experiences',
+      'education',
+      'skills'
+    ]);
+    expect(getResumePreviewTemplateOrder('notion-clean', 'general')).toEqual([
+      'summary',
+      'experiences',
+      'projects',
+      'education',
+      'skills'
+    ]);
   });
 });
