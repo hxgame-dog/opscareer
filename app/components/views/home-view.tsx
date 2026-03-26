@@ -72,6 +72,18 @@ export function HomeView({ dashboard, logs, onGoResumes, onGoJobs, onGoMock, onO
         subtitle="工作台把简历、岗位、投递和面试放到一个入口里，方便你快速回到主线。"
         className="home-hero-panel"
       >
+        {dashboard.counts.resumes === 0 && dashboard.counts.jobs === 0 && dashboard.counts.applications === 0 ? (
+          <div className="dashboard-task-stack dashboard-task-stack-compact">
+            <div className="dashboard-task-card">
+              <strong>首次使用</strong>
+              <div className="small">1. 先补主档并生成第一版简历</div>
+            </div>
+            <div className="dashboard-task-card">
+              <strong>下一步</strong>
+              <div className="small">2. 保存目标 JD，3. 发起投递，4. 做第一次模拟面试</div>
+            </div>
+          </div>
+        ) : null}
         <div className="home-hero-layout">
           <div className="home-hero-copy">
             <div className="home-hero-kicker">Main Focus</div>
@@ -139,7 +151,12 @@ export function HomeView({ dashboard, logs, onGoResumes, onGoJobs, onGoMock, onO
                 </div>
               ))
             ) : (
-              <EmptyState title="暂无投递阶段数据" description="从岗位库创建第一条投递后，这里会出现阶段分布。" />
+              <EmptyState
+                title="暂无投递阶段数据"
+                description="从岗位库创建第一条投递后，这里会出现阶段分布。"
+                actionLabel="去岗位库"
+                onAction={onGoJobs}
+              />
             )}
           </div>
         </PanelShell>
@@ -175,7 +192,12 @@ export function HomeView({ dashboard, logs, onGoResumes, onGoJobs, onGoMock, onO
                 />
               ))
             ) : (
-              <EmptyState title="暂无投递记录" description="可以从 JD 库创建第一条投递。" />
+              <EmptyState
+                title="暂无投递记录"
+                description="可以从 JD 库创建第一条投递。"
+                actionLabel="去岗位库"
+                onAction={onGoJobs}
+              />
             )}
           </div>
         </PanelShell>
@@ -193,7 +215,12 @@ export function HomeView({ dashboard, logs, onGoResumes, onGoJobs, onGoMock, onO
                 />
               ))
             ) : (
-              <EmptyState title="岗位库还是空的" description="先保存几个目标 JD，后面所有动作都会更顺。" />
+              <EmptyState
+                title="岗位库还是空的"
+                description="先保存几个目标 JD，后面所有动作都会更顺。"
+                actionLabel="打开岗位库"
+                onAction={onGoJobs}
+              />
             )}
           </div>
         </PanelShell>
@@ -211,7 +238,12 @@ export function HomeView({ dashboard, logs, onGoResumes, onGoJobs, onGoMock, onO
                 />
               ))
             ) : (
-              <EmptyState title="暂无模拟面试记录" description="选择一个 JD 开始第一次模拟面试。" />
+              <EmptyState
+                title="暂无模拟面试记录"
+                description="选择一个 JD 开始第一次模拟面试。"
+                actionLabel="开始模拟面试"
+                onAction={onGoMock}
+              />
             )}
           </div>
         </PanelShell>

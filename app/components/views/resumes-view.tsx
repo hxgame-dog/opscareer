@@ -228,7 +228,14 @@ export function ResumesView({
                 </section>
               ))
             ) : (
-              <EmptyState title="还没有简历" description="先生成第一版简历，后续才能形成版本链。" />
+              <EmptyState
+                title="还没有简历"
+                description="先从主档生成第一版简历，后续才能形成版本链、做 JD 优化和导出。"
+                actionLabel="生成第一版简历"
+                onAction={onGenerateResume}
+                secondaryLabel="打开岗位库"
+                onSecondaryAction={onGoJobs}
+              />
             )}
           </div>
         </PanelShell>

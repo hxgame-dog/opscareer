@@ -201,7 +201,12 @@ export function JobsView({
                   </ResultCard>
                 ))
               ) : (
-                <EmptyState title="暂无 JD 收藏记录" description="保存一条岗位描述后，这里会变成你的岗位数据库。" />
+                <EmptyState
+                  title="暂无 JD 收藏记录"
+                  description="先粘贴一条目标岗位描述并收藏，后面就能直接从这里发起简历优化、投递和模拟面试。"
+                  actionLabel="收藏当前 JD"
+                  onAction={onSaveCurrentJd}
+                />
               )}
             </div>
           </PanelShell>

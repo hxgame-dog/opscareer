@@ -1,4 +1,5 @@
 import { ActionBar } from '@/app/components/ui/action-bar';
+import { EmptyState } from '@/app/components/ui/empty-state';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
@@ -49,6 +50,16 @@ export function ProfileView({
   onGoResumes,
   isGeneratingResume
 }: ProfileViewProps) {
+  const missingBasics = !profile.basics.name.trim() || !profile.basics.email.trim();
+  const missingSummary = !profile.basics.summary.trim();
+  const missingExperience = !profile.experiences.some((item) => item.company.trim() || item.role.trim() || item.achievements.some((entry) => entry.trim()));
+  const onboardingSteps = [
+    { label: '补全姓名和邮箱', done: !missingBasics },
+    { label: '写一段个人摘要', done: !missingSummary },
+    { label: '至少补一段工作经历', done: !missingExperience },
+    { label: '生成第一版简历', done: false }
+  ];
+
   return (
     <section className="content-stack workspace-stage">
       <PageHeader
@@ -89,6 +100,27 @@ export function ProfileView({
       />
 
       <div className="dashboard-hero-grid">
+        <PanelShell eyebrow="Onboarding" title="首次使用建议" subtitle="第一次进入时，先按这个顺序补齐主档会更顺。">
+          <div className="dashboard-task-stack dashboard-task-stack-compact">
+            {onboardingSteps.map((step) => (
+              <div key={step.label} className="dashboard-task-card">
+                <strong>{step.done ? '已完成' : '待完成'}</strong>
+                <div className="small">{step.label}</div>
+              </div>
+            ))}
+          </div>
+          {(missingBasics || missingSummary || missingExperience) ? (
+            <EmptyState
+              title="先把主档补到可生成状态"
+              description="至少补齐姓名、邮箱、摘要和一段经历，再生成第一版简历，后面所有步骤都会顺很多。"
+              actionLabel="生成第一版简历"
+              onAction={onGenerateResume}
+              secondaryLabel="去简历中心"
+              onSecondaryAction={onGoResumes}
+            />
+          ) : null}
+        </PanelShell>
+
         <PanelShell eyebrow="Defaults" title="默认生成策略" subtitle="这些设置会直接影响后续简历生成、优化和模拟面试语言。">
           <div className="grid-3">
             <div>

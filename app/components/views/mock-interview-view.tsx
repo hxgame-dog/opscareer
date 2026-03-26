@@ -216,7 +216,12 @@ export function MockInterviewView({
                   </div>
                 </div>
               ) : (
-                <EmptyState title="当前会话没有待回答题目" description="你可以查看总评，或者重新开始一场新的模拟面试。" />
+                <EmptyState
+                title="当前会话没有待回答题目"
+                description="你可以查看总评，或者重新开始一场新的模拟面试。"
+                actionLabel="重新开始模拟"
+                onAction={onStartMockInterview}
+              />
               )}
               <PanelShell eyebrow="Progress" title="题目进度" subtitle="每道题的作答状态和得分。">
                 <div className="dashboard-card-list">
@@ -235,7 +240,12 @@ export function MockInterviewView({
               </PanelShell>
             </>
           ) : (
-            <EmptyState title="还没有选中模拟面试" description="从右侧历史里打开一场会话后，就可以在这里逐题回答。" />
+            <EmptyState
+              title="还没有选中模拟面试"
+              description="第一次使用时，可以直接选择一个岗位开始模拟；开始后这里会变成逐题训练区。"
+              actionLabel="开始第一场模拟"
+              onAction={onStartMockInterview}
+            />
           )}
         </PanelShell>
 
