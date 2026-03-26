@@ -59,6 +59,15 @@ type ApiResponse<T> = {
   error?: string;
 };
 
+function normalizeClientError(message: string) {
+  if (/Authentication required/i.test(message)) return '登录状态已失效，请重新登录。';
+  if (/Gemini key/i.test(message) || /API Key/i.test(message)) return 'Gemini 配置有问题，请先到设置页检查 API Key。';
+  if (/数据库连接失败/i.test(message)) return message;
+  if (/网络请求失败/i.test(message)) return message;
+  if (/请求太频繁|额度不足/i.test(message)) return message;
+  return message;
+}
+
 type DashboardProps = {
   user: {
     id: string;
@@ -132,7 +141,7 @@ async function callApi<T>(url: string, options?: RequestInit): Promise<T> {
   });
   const json = (await res.json()) as ApiResponse<T>;
   if (!json.success || !json.data) {
-    throw new Error(json.error ?? 'Request failed');
+    throw new Error(normalizeClientError(json.error ?? 'Request failed'));
   }
   return json.data;
 }
@@ -268,10 +277,11 @@ export function Dashboard({
   const formatTime = (value: string) => new Date(value).toLocaleString();
 
   const appendLog = (line: string) => {
-    setLogs((prev) => [`${new Date().toLocaleTimeString()} ${line}`, ...prev].slice(0, 12));
+    const normalized = normalizeClientError(line);
+    setLogs((prev) => [`${new Date().toLocaleTimeString()} ${normalized}`, ...prev].slice(0, 12));
     setFlash({
-      text: line,
-      tone: line.includes('失败') ? 'error' : line.includes('完成') || line.includes('成功') || line.includes('已') ? 'success' : 'info'
+      text: normalized,
+      tone: normalized.includes('失败') || normalized.includes('失效') ? 'error' : normalized.includes('完成') || normalized.includes('成功') || normalized.includes('已') ? 'success' : 'info'
     });
   };
   const isBusy = (key: string) => !!busy[key];

@@ -2,6 +2,7 @@ import { requireCurrentUser } from '@/lib/auth-session';
 import { prisma } from '@/lib/db';
 import { decrypt } from '@/lib/crypto';
 import { fetchGeminiModels, pickPreferredGeminiModel } from '@/lib/gemini';
+import { apiFail } from '@/lib/api-error';
 import { fail, ok } from '@/lib/response';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
@@ -30,8 +31,7 @@ export async function GET() {
 
     return ok({ models, selectedModel, maskedApiKey: cfg.maskedApiKey });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return fail(message, message === 'Authentication required.' ? 401 : 400);
+    return apiFail(error);
   }
 }
 
@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
 
     return ok({ selectedModel: body.selectedModel });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return fail(message, message === 'Authentication required.' ? 401 : 400);
+    return apiFail(error);
   }
 }

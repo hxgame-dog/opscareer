@@ -4,6 +4,7 @@ import { encrypt, maskApiKey } from '@/lib/crypto';
 import { requireCurrentUser } from '@/lib/auth-session';
 import { prisma } from '@/lib/db';
 import { pickPreferredGeminiModel, validateGeminiKey } from '@/lib/gemini';
+import { apiFail } from '@/lib/api-error';
 import { fail, ok } from '@/lib/response';
 
 const Schema = z.object({
