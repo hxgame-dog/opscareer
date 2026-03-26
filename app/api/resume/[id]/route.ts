@@ -7,7 +7,10 @@ import { z } from 'zod';
 
 const UpdateSchema = z.object({
   title: z.string().min(1).max(120).optional(),
-  markdown: z.string().min(1).optional()
+  markdown: z.string().min(1).optional(),
+  isPrimary: z.boolean().optional(),
+  duplicate: z.boolean().optional(),
+  duplicateTitle: z.string().min(1).max(120).optional()
 });
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -34,6 +37,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       id: resume.id,
       title: resume.title,
       version: resume.version,
+      isPrimary: resume.isPrimary,
       theme: resume.theme,
       language: resume.language,
       markdown: resume.markdown,
@@ -60,10 +64,43 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return fail('Resume not found.', 404);
     }
 
+    if (body.duplicate) {
+      const duplicated = await prisma.resume.create({
+        data: {
+          userId: user.id,
+          profileId: resume.profileId,
+          jobPostingId: resume.jobPostingId,
+          parentResumeId: resume.id,
+          title: body.duplicateTitle ?? `${resume.title}-copy`,
+          contentJson: resume.contentJson,
+          markdown: resume.markdown,
+          language: resume.language,
+          version: resume.version + 1,
+          isPrimary: false,
+          theme: resume.theme
+        }
+      });
+
+      return ok({
+        id: duplicated.id,
+        title: duplicated.title,
+        markdown: duplicated.markdown,
+        duplicated: true
+      });
+    }
+
+    if (body.isPrimary) {
+      await prisma.resume.updateMany({
+        where: { userId: user.id, isPrimary: true },
+        data: { isPrimary: false }
+      });
+    }
+
     const updated = await prisma.resume.update({
       where: { id },
       data: {
         ...(body.title ? { title: body.title } : {}),
+        ...(body.isPrimary !== undefined ? { isPrimary: body.isPrimary } : {}),
         ...(body.markdown
           ? {
               markdown: body.markdown,
@@ -76,7 +113,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return ok({
       id: updated.id,
       title: updated.title,
-      markdown: updated.markdown
+      markdown: updated.markdown,
+      isPrimary: updated.isPrimary
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

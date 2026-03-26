@@ -17,6 +17,7 @@ type ResumeVersion = {
   title: string;
   version: number;
   theme: ResumeTheme;
+  isPrimary: boolean;
   parentResumeId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -66,6 +67,8 @@ type ResumesViewProps = {
   onApplyTheme: (theme: ResumeTheme) => void;
   onSelectResumeVersion: (id: string) => void;
   onDeleteResume: (id: string) => void;
+  onMarkPrimaryResume: (id: string) => void;
+  onDuplicateResume: (id: string) => void;
   onDiffSelectionChange: (selection: { baseId: string; compareId: string }) => void;
   onLoadDiff: () => void;
   isGeneratingResume: boolean;
@@ -102,6 +105,8 @@ export function ResumesView({
   onApplyTheme,
   onSelectResumeVersion,
   onDeleteResume,
+  onMarkPrimaryResume,
+  onDuplicateResume,
   onDiffSelectionChange,
   onLoadDiff,
   isGeneratingResume,
@@ -114,10 +119,25 @@ export function ResumesView({
 }: ResumesViewProps) {
   const formatTime = (value: string) => new Date(value).toLocaleString();
   const [toolTab, setToolTab] = useState<'theme' | 'diff' | 'summary'>('theme');
+  const [search, setSearch] = useState('');
+  const [primaryOnly, setPrimaryOnly] = useState(false);
   const nextRecommendation = getResumeNextRecommendation({
     hasResume: Boolean(resumeId),
     generatedRecently: resumeGeneratedRecently
   });
+  const filteredGroups = resumeGroups
+    .map((group) => ({
+      ...group,
+      versions: group.versions.filter((version) => {
+        const keyword = search.trim().toLowerCase();
+        const hit = !keyword || [version.title, version.targetLabel ?? '', group.displayTitle].some((text) =>
+          text.toLowerCase().includes(keyword)
+        );
+        const primaryHit = !primaryOnly || version.isPrimary;
+        return hit && primaryHit;
+      })
+    }))
+    .filter((group) => group.versions.length > 0);
 
   return (
     <section className="content-stack workspace-stage">
@@ -192,14 +212,20 @@ export function ResumesView({
           subtitle={`共 ${resumeGroups.length} 组简历`}
           className="resume-library-panel"
           actions={
-            <button className="secondary button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
-              新建版本
-            </button>
+            <div className="inline compact-actions">
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索标题 / 目标岗位" />
+              <button className="ghost button-compact" onClick={() => setPrimaryOnly((prev) => !prev)}>
+                {primaryOnly ? '只看主简历中' : '全部版本'}
+              </button>
+              <button className="secondary button-compact" onClick={onGenerateResume} disabled={isGeneratingResume}>
+                新建版本
+              </button>
+            </div>
           }
         >
           <div className="resume-groups">
-            {resumeGroups.length > 0 ? (
-              resumeGroups.map((group) => (
+            {filteredGroups.length > 0 ? (
+              filteredGroups.map((group) => (
                 <section key={group.rootResumeId} className="resume-group-card">
                   <div className="resume-group-title-row">
                     <div>
@@ -212,15 +238,23 @@ export function ResumesView({
                     {group.versions.map((version) => (
                       <ResultCard
                         key={version.id}
-                        title={`V${version.version}`}
+                        title={`V${version.version}${version.isPrimary ? ' · 主简历' : ''}`}
                         subtitle={version.targetLabel ?? version.title}
                         active={resumeId === version.id}
                         meta={<div className="small">{version.theme} · {formatTime(version.updatedAt)}</div>}
                         onClick={() => onSelectResumeVersion(version.id)}
                         actions={
-                          <button className="danger button-compact" onClick={() => onDeleteResume(version.id)}>
-                            删除
-                          </button>
+                          <div className="inline compact-actions">
+                            <button className="secondary button-compact" onClick={() => onMarkPrimaryResume(version.id)}>
+                              设为主简历
+                            </button>
+                            <button className="ghost button-compact" onClick={() => onDuplicateResume(version.id)}>
+                              复制
+                            </button>
+                            <button className="danger button-compact" onClick={() => onDeleteResume(version.id)}>
+                              删除
+                            </button>
+                          </div>
                         }
                       />
                     ))}
@@ -229,10 +263,10 @@ export function ResumesView({
               ))
             ) : (
               <EmptyState
-                title="还没有简历"
-                description="先从主档生成第一版简历，后续才能形成版本链、做 JD 优化和导出。"
-                actionLabel="生成第一版简历"
-                onAction={onGenerateResume}
+                title={resumeGroups.length > 0 ? '没有符合条件的简历' : '还没有简历'}
+                description={resumeGroups.length > 0 ? '试试换个关键词，或者取消“只看主简历”。' : '先从主档生成第一版简历，后续才能形成版本链、做 JD 优化和导出。'}
+                actionLabel={resumeGroups.length > 0 ? '清空筛选' : '生成第一版简历'}
+                onAction={resumeGroups.length > 0 ? () => { setSearch(''); setPrimaryOnly(false); } : onGenerateResume}
                 secondaryLabel="打开岗位库"
                 onSecondaryAction={onGoJobs}
               />

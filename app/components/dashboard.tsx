@@ -84,6 +84,7 @@ type ResumeVersion = {
   title: string;
   version: number;
   theme: ResumeTheme;
+  isPrimary: boolean;
   parentResumeId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -1250,6 +1251,37 @@ export function Dashboard({
     });
   };
 
+  const onMarkPrimaryResume = async (id: string) => {
+    await withBusy(`mark-primary-resume:${id}`, async () => {
+      try {
+        await callApi<{ id: string; isPrimary: boolean }>(`/api/resume/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ isPrimary: true })
+        });
+        appendLog('已设置主简历');
+        await onLoadResumes();
+      } catch (err) {
+        appendLog(`设置主简历失败: ${(err as Error).message}`);
+      }
+    });
+  };
+
+  const onDuplicateResume = async (id: string) => {
+    await withBusy(`duplicate-resume:${id}`, async () => {
+      try {
+        const data = await callApi<{ id: string; title: string }>(`/api/resume/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ duplicate: true })
+        });
+        appendLog(`已复制简历版本: ${data.title}`);
+        await onLoadResumes();
+        await onSelectResumeVersion(data.id);
+      } catch (err) {
+        appendLog(`复制简历失败: ${(err as Error).message}`);
+      }
+    });
+  };
+
   const onRenameResume = async () => {
     await withBusy('rename-resume', async () => {
       try {
@@ -1946,6 +1978,8 @@ export function Dashboard({
             onApplyTheme={onApplyTheme}
             onSelectResumeVersion={(id) => void onSelectResumeVersion(id)}
             onDeleteResume={(id) => void onDeleteResume(id)}
+            onMarkPrimaryResume={(id) => void onMarkPrimaryResume(id)}
+            onDuplicateResume={(id) => void onDuplicateResume(id)}
             onDiffSelectionChange={setDiffSelection}
             onLoadDiff={() => void onLoadDiff()}
             isGeneratingResume={isBusy('generate-resume')}

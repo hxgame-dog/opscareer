@@ -112,6 +112,7 @@ model Resume {
   markdown     String
   language     String   @default("zh-CN")
   version      Int      @default(1)
+  isPrimary    Boolean  @default(false)
   theme        ResumeTheme @default(CLASSIC)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

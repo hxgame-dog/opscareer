@@ -4,6 +4,7 @@ type ResumeRecord = {
   id: string;
   title: string;
   version: number;
+  isPrimary: boolean;
   theme: ResumeTheme;
   parentResumeId: string | null;
   createdAt: Date;
@@ -25,6 +26,7 @@ export type ResumeHistoryGroup = {
     title: string;
     version: number;
     theme: ResumeTheme;
+    isPrimary: boolean;
     parentResumeId: string | null;
     createdAt: string;
     updatedAt: string;
@@ -72,6 +74,7 @@ export function buildResumeHistoryGroups(resumes: ResumeRecord[]): ResumeHistory
           title: resume.title,
           version: resume.version,
           theme: resume.theme,
+          isPrimary: resume.isPrimary,
           parentResumeId: resume.parentResumeId,
           createdAt: resume.createdAt.toISOString(),
           updatedAt: resume.updatedAt.toISOString(),
