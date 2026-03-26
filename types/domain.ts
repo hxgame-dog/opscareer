@@ -180,6 +180,40 @@ export interface ResumeDiagnosisReport {
   riskFlags: string[];
 }
 
+export interface JobPostingInsight {
+  score: number;
+  summary: string;
+  keywords: string[];
+  strengths: string[];
+  risks: string[];
+  nextActions: string[];
+  signals: {
+    englishRequired: boolean;
+    seniority: 'entry' | 'mid' | 'senior' | 'lead' | 'unknown';
+    urgency: 'low' | 'medium' | 'high';
+  };
+}
+
+export interface JobPostingDetail {
+  id: string;
+  company: string;
+  role: string;
+  description: string;
+  language: Language;
+  source: JobPostingSource;
+  saved: boolean;
+  updatedAt: string;
+  createdAt: string;
+  insight: JobPostingInsight;
+  linkedStats: {
+    applicationCount: number;
+    interviewCount: number;
+    mockInterviewCount: number;
+    diagnosisCount: number;
+  };
+  latestDiagnosis: ResumeDiagnosisReport | null;
+}
+
 export interface InterviewPrepResult {
   strategy: string;
   qa: Array<{

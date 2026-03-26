@@ -12,6 +12,7 @@ import {
   ApplicationStatus,
   Language,
   DashboardSummary,
+  JobPostingDetail,
   MockInterviewEvaluation,
   MockInterviewListItem,
   MockInterviewQuestion,
@@ -196,7 +197,7 @@ export function Dashboard({
   const [resumeImportPreview, setResumeImportPreview] = useState<ResumeImportPreview | null>(null);
   const [jdText, setJdText] = useState(JSON.stringify(DEFAULT_JD, null, 2));
   const [jdLibrary, setJdLibrary] = useState<JobPostingRecord[]>([]);
-  const [selectedJobPosting, setSelectedJobPosting] = useState<JobPostingRecord | null>(null);
+  const [selectedJobPosting, setSelectedJobPosting] = useState<JobPostingDetail | null>(null);
   const [applicationView, setApplicationView] = useState<'board' | 'list'>('board');
   const [applicationFilters, setApplicationFilters] = useState({
     status: '',
@@ -840,7 +841,6 @@ export function Dashboard({
   };
 
   const onLoadJobPostingIntoEditor = (posting: JobPostingRecord) => {
-    setSelectedJobPosting(posting);
     setJdText(
       JSON.stringify(
         {
@@ -858,7 +858,6 @@ export function Dashboard({
   };
 
   const onOptimizeWithJobPosting = async (posting: JobPostingRecord) => {
-    setSelectedJobPosting(posting);
     setResumeLanguage(posting.language);
     setJdText(
       JSON.stringify(
@@ -911,7 +910,6 @@ export function Dashboard({
   };
 
   const onPrepareInterviewWithJobPosting = async (posting: JobPostingRecord) => {
-    setSelectedJobPosting(posting);
     setResumeLanguage(posting.language);
     setJdText(
       JSON.stringify(
@@ -1167,7 +1165,7 @@ export function Dashboard({
 
   const onOpenJobPostingDetail = async (id: string) => {
     try {
-      const posting = await callApi<JobPostingRecord>(`/api/job-postings/${id}`);
+      const posting = await callApi<JobPostingDetail>(`/api/job-postings/${id}`);
       setSelectedJobPosting(posting);
       setDetailOpen(true);
       appendLog(`已打开 JD 详情: ${posting.company} · ${posting.role}`);
@@ -1223,7 +1221,7 @@ export function Dashboard({
         appendLog('请先选择一条 JD');
         return;
       }
-      const updated = await callApi<JobPostingRecord>(`/api/job-postings/${selectedJobPosting.id}`, {
+      const updated = await callApi<JobPostingDetail>(`/api/job-postings/${selectedJobPosting.id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           company: selectedJobPosting.company,
@@ -1557,6 +1555,7 @@ export function Dashboard({
               <span>{selectedJobPosting.role}</span>
             </div>
             <div className="small">{selectedJobPosting.language} · {selectedJobPosting.saved ? '已收藏' : '未收藏'}</div>
+            <div className="small">洞察分 {selectedJobPosting.insight.score} · 关键词 {selectedJobPosting.insight.keywords.slice(0, 4).join(' / ') || '暂无'}</div>
             <label>JD 公司</label>
             <input
               value={selectedJobPosting.company}

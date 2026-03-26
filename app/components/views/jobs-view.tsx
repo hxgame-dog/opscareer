@@ -2,13 +2,14 @@ import { EmptyState } from '@/app/components/ui/empty-state';
 import { ActionBar } from '@/app/components/ui/action-bar';
 import { FilterRail } from '@/app/components/ui/filter-rail';
 import { NextStepPanel } from '@/app/components/ui/next-step-panel';
+import { MetricChip } from '@/app/components/ui/metric-chip';
 import { PageHeader } from '@/app/components/ui/page-header';
 import { PanelShell } from '@/app/components/ui/panel-shell';
 import { ResultCard } from '@/app/components/ui/result-card';
 import { SearchBar } from '@/app/components/ui/search-bar';
 import { StatusBadge } from '@/app/components/ui/status-badge';
 import { getJobNextRecommendation } from '@/lib/product-guidance';
-import type { Language } from '@/types/domain';
+import type { JobPostingDetail, Language } from '@/types/domain';
 
 type JobPostingRecord = {
   id: string;
@@ -28,7 +29,7 @@ type JobsViewProps = {
   jdSearch: string;
   savedOnly: boolean;
   jdLibrary: JobPostingRecord[];
-  selectedJobPosting: JobPostingRecord | null;
+  selectedJobPosting: JobPostingDetail | null;
   onJdTextChange: (value: string) => void;
   onJdSearchChange: (value: string) => void;
   onToggleSavedOnly: () => void;
@@ -110,7 +111,7 @@ export function JobsView({
 
       <NextStepPanel
         title={nextRecommendation.title}
-        description={nextRecommendation.description}
+        description={selectedJobPosting?.insight.summary ?? nextRecommendation.description}
         actions={
           selectedJobPosting ? (
             <div className="next-step-actions">
@@ -128,7 +129,8 @@ export function JobsView({
         }
         tags={[
           selectedJobPosting ? `${selectedJobPosting.company} · ${selectedJobPosting.role}` : '请选择一条岗位',
-          selectedJobPosting ? '先优化，再投递' : '选中后出现推荐动作'
+          selectedJobPosting ? `洞察分 ${selectedJobPosting.insight.score}` : '选中后出现推荐动作',
+          selectedJobPosting?.insight.signals.englishRequired ? '英文要求' : '先优化，再投递'
         ]}
       />
 
@@ -210,6 +212,59 @@ export function JobsView({
         </div>
 
         <div className="jobs-secondary-column">
+          <PanelShell eyebrow="Insight" title="岗位洞察" subtitle="结构化看这条 JD 值不值得马上推进。">
+            {selectedJobPosting ? (
+              <div className="content-stack">
+                <div className="result-card">
+                  <div className="result-card-title">洞察分 {selectedJobPosting.insight.score}</div>
+                  <div className="result-card-subtitle">{selectedJobPosting.insight.summary}</div>
+                </div>
+                <div className="metrics-strip metrics-strip-summary">
+                  <MetricChip label="Applications" value={selectedJobPosting.linkedStats.applicationCount} hint="投递" />
+                  <MetricChip label="Interviews" value={selectedJobPosting.linkedStats.interviewCount} hint="真实面试" />
+                  <MetricChip label="Mock" value={selectedJobPosting.linkedStats.mockInterviewCount} hint="模拟面试" />
+                  <MetricChip label="Diagnosis" value={selectedJobPosting.linkedStats.diagnosisCount} hint="诊断次数" />
+                </div>
+                <div>
+                  <strong>关键词</strong>
+                  <div className="inline compact-actions">
+                    {selectedJobPosting.insight.keywords.length > 0 ? selectedJobPosting.insight.keywords.map((keyword) => (
+                      <span key={keyword} className="timeline-tag">{keyword}</span>
+                    )) : <span className="small">暂无关键词</span>}
+                  </div>
+                </div>
+                <div>
+                  <strong>匹配提示</strong>
+                  <ul>
+                    {selectedJobPosting.insight.strengths.map((item) => <li key={item} className="small">{item}</li>)}
+                  </ul>
+                </div>
+                <div>
+                  <strong>风险提示</strong>
+                  <ul>
+                    {selectedJobPosting.insight.risks.length > 0 ? selectedJobPosting.insight.risks.map((item) => <li key={item} className="small">{item}</li>) : <li className="small">当前没有明显风险提示。</li>}
+                  </ul>
+                </div>
+                <div>
+                  <strong>建议动作</strong>
+                  <ul>
+                    {selectedJobPosting.insight.nextActions.map((item) => <li key={item} className="small">{item}</li>)}
+                  </ul>
+                </div>
+                {selectedJobPosting.latestDiagnosis ? (
+                  <div>
+                    <strong>最近一次简历诊断</strong>
+                    <div className="small">得分 {selectedJobPosting.latestDiagnosis.score}</div>
+                    <ul>
+                      {selectedJobPosting.latestDiagnosis.gaps.slice(0, 3).map((item) => <li key={item} className="small">{item}</li>)}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <EmptyState title="先打开一个岗位详情" description="这里会展示关键词、匹配提示、风险点和建议动作。" />
+            )}
+          </PanelShell>
           <PanelShell eyebrow="Resume Link" title="简历诊断输出" subtitle="从当前 JD 直接推动简历定制。">
             <pre>{optResult || '暂无诊断结果'}</pre>
           </PanelShell>
