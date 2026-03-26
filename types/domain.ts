@@ -269,3 +269,64 @@ export interface ApplicationDetail {
     scheduledAt: string | null;
   }>;
 }
+
+export interface DashboardReminderItem {
+  id: string;
+  title: string;
+  detail: string;
+  nextStep: string | null;
+  reminderAt: string | null;
+  company: string;
+  role: string;
+  applicationId: string;
+}
+
+export interface DashboardStageCount {
+  status: ApplicationStatus;
+  count: number;
+}
+
+export interface DashboardPriorityCount {
+  priority: ApplicationPriority;
+  count: number;
+}
+
+export interface DashboardJobPostingItem {
+  id: string;
+  company: string;
+  role: string;
+  language: Language;
+  saved: boolean;
+  updatedAt: string;
+}
+
+export interface DashboardInterviewItem {
+  id: string;
+  roundName: string;
+  status: string;
+  summary: string | null;
+  scheduledAt: string | null;
+  createdAt: string;
+  jobPosting: {
+    company: string;
+    role: string;
+  };
+}
+
+export interface DashboardSummary {
+  counts: {
+    resumes: number;
+    jobs: number;
+    applications: number;
+    activeApplications: number;
+    mockInterviews: number;
+    interviews: number;
+  };
+  stageCounts: DashboardStageCount[];
+  priorityCounts: DashboardPriorityCount[];
+  reminders: DashboardReminderItem[];
+  recentApplications: ApplicationCard[];
+  recentMockInterviews: MockInterviewListItem[];
+  recentInterviews: DashboardInterviewItem[];
+  recentJobs: DashboardJobPostingItem[];
+}

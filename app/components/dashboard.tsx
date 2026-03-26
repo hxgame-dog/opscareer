@@ -11,6 +11,7 @@ import {
   ApplicationPriority,
   ApplicationStatus,
   Language,
+  DashboardSummary,
   MockInterviewEvaluation,
   MockInterviewListItem,
   MockInterviewQuestion,
@@ -106,6 +107,8 @@ type InterviewRecord = {
   summary: string | null;
   status: 'APPLIED' | 'SCREENING' | 'TECHNICAL' | 'FINAL' | 'OFFER' | 'REJECTED' | 'WITHDRAWN';
   applicationId?: string | null;
+  scheduledAt?: string | null;
+  createdAt?: string;
   jobPosting: {
     company: string;
     role: string;
@@ -161,6 +164,23 @@ export function Dashboard({
     onConfirm: () => Promise<void> | void;
   } | null>(null);
   const [models, setModels] = useState<Array<{ name: string; recommended: boolean }>>([]);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary>({
+    counts: {
+      resumes: 0,
+      jobs: 0,
+      applications: 0,
+      activeApplications: 0,
+      mockInterviews: 0,
+      interviews: 0
+    },
+    stageCounts: [],
+    priorityCounts: [],
+    reminders: [],
+    recentApplications: [],
+    recentMockInterviews: [],
+    recentInterviews: [],
+    recentJobs: []
+  });
   const [selectedModel, setSelectedModel] = useState('');
   const [profileDraft, setProfileDraft] = useState<ProfileInput>(DEFAULT_PROFILE);
   const [profileText, setProfileText] = useState(JSON.stringify(DEFAULT_PROFILE, null, 2));
@@ -290,17 +310,6 @@ export function Dashboard({
   const activeApplicationCount = applications.filter((application) =>
     ['READY', 'APPLIED', 'SCREENING', 'INTERVIEWING'].includes(application.status)
   ).length;
-  const upcomingReminders = selectedApplication?.timeline
-    .filter((event) => event.reminderAt)
-    .map((event) => ({
-      id: event.id,
-      title: event.title,
-      detail: event.detail,
-      reminderAt: event.reminderAt,
-      company: selectedApplication.company,
-      role: selectedApplication.role
-    }))
-    .slice(0, 4) ?? [];
   const hasContext =
     (activeView === 'jobs' && !!selectedJobPosting) ||
     (activeView === 'applications' && !!selectedApplication) ||
@@ -354,6 +363,15 @@ export function Dashboard({
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
   }, [detailOpen, isNotebookLayout]);
+
+  const onLoadDashboard = async () => {
+    try {
+      const data = await callApi<DashboardSummary>('/api/dashboard');
+      setDashboardSummary(data);
+    } catch (err) {
+      appendLog(`读取工作台摘要失败: ${(err as Error).message}`);
+    }
+  };
 
   const onLoadApplications = async (view = applicationView, filters = applicationFilters) => {
     try {
@@ -433,6 +451,7 @@ export function Dashboard({
       if (onlySaved) params.set('savedOnly', 'true');
       const data = await callApi<JobPostingRecord[]>(`/api/job-postings?${params.toString()}`);
       setJdLibrary(data);
+      void onLoadDashboard();
       appendLog(`已加载 ${data.length} 条 JD`);
     } catch (err) {
       appendLog(`读取 JD 列表失败: ${(err as Error).message}`);
@@ -524,6 +543,7 @@ export function Dashboard({
   };
 
   useEffect(() => {
+    void onLoadDashboard();
     void onLoadResumes();
     void onLoadJobPostings();
     void onLoadInterviews();
@@ -1829,17 +1849,8 @@ export function Dashboard({
 
         {activeView === 'home' ? (
           <HomeView
-            resumeGroupCount={resumeGroups.length}
-            jdCount={jdLibrary.length}
-            applicationCount={applicationCount}
-            activeApplicationCount={activeApplicationCount}
-            mockInterviewCount={mockInterviewSessions.length}
-            interviewCount={interviews.length}
-            upcomingReminders={upcomingReminders}
+            dashboard={dashboardSummary}
             logs={logs}
-            recentApplications={applications.slice(0, 4)}
-            recentMockInterviews={mockInterviewSessions.slice(0, 4)}
-            recentInterviews={interviews.slice(0, 4)}
             onGoResumes={() => setActiveView('resumes')}
             onGoJobs={() => setActiveView('jobs')}
             onGoMock={() => setActiveView('mock')}
