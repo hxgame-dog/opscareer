@@ -49,6 +49,8 @@ type ApplicationsViewProps = {
     resumeId?: string | null;
     notes?: string;
     source?: string | null;
+    nextStep?: string | null;
+    deadlineAt?: string | null;
     appliedAt?: string | null;
   }) => void;
   onDeleteApplication: (application: ApplicationCard | ApplicationDetail) => void;
@@ -130,6 +132,12 @@ export function ApplicationsView({
                 >
                   标记已投递
                 </button>
+              ) : null}
+              {selectedApplication.nextStep ? (
+                <span className="timeline-tag">下一步：{selectedApplication.nextStep}</span>
+              ) : null}
+              {selectedApplication.deadlineAt ? (
+                <span className="timeline-tag timeline-tag-warn">截止：{new Date(selectedApplication.deadlineAt).toLocaleDateString()}</span>
               ) : null}
               {(selectedApplication.status === 'APPLIED' ||
                 selectedApplication.status === 'SCREENING' ||
@@ -247,7 +255,8 @@ export function ApplicationsView({
                               meta={
                                 <>
                                   <div className="small">{application.priority} · 面试 {application.interviewCount} 轮</div>
-                                  <div className="small">更新于 {new Date(application.updatedAt).toLocaleDateString()}</div>
+                                  <div className="small">{application.nextStep ? `下一步：${application.nextStep}` : application.resumeLabel ?? '未绑定简历'}</div>
+                                  <div className="small">{application.deadlineAt ? `截止 ${new Date(application.deadlineAt).toLocaleDateString()}` : `更新于 ${new Date(application.updatedAt).toLocaleDateString()}`}</div>
                                 </>
                               }
                               active={selectedApplication?.id === application.id}
@@ -290,8 +299,7 @@ export function ApplicationsView({
                     subtitle={`${application.status} · ${application.priority}`}
                     meta={
                       <div className="small">
-                        {application.resumeLabel ?? '未绑定简历'} · 面试 {application.interviewCount} 轮 · 更新于{' '}
-                        {new Date(application.updatedAt).toLocaleDateString()}
+                        {application.resumeLabel ?? '未绑定简历'} · 面试 {application.interviewCount} 轮 · {application.nextStep ? `下一步：${application.nextStep}` : '待补下一步'}
                       </div>
                     }
                     active={selectedApplication?.id === application.id}

@@ -11,7 +11,9 @@ const UpdateSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   resumeId: z.string().nullable().optional(),
   appliedAt: z.string().datetime().nullable().optional(),
+  deadlineAt: z.string().datetime().nullable().optional(),
   notes: z.string().optional(),
+  nextStep: z.string().nullable().optional(),
   source: z.string().nullable().optional()
 });
 
@@ -28,6 +30,8 @@ function detailPayload(item: {
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   notes: string;
   source: string | null;
+  nextStep: string | null;
+  deadlineAt: Date | null;
   appliedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +61,8 @@ function detailPayload(item: {
       kind: 'application_created' as const,
       title: '创建投递',
       detail: `${item.jobPosting.company} · ${item.jobPosting.role}`,
+      nextStep: item.nextStep ?? null,
+      reminderAt: item.deadlineAt?.toISOString() ?? null,
       at: item.createdAt.toISOString()
     },
     ...(item.appliedAt
@@ -66,6 +72,8 @@ function detailPayload(item: {
             kind: 'application_status' as const,
             title: '标记为已投递',
             detail: `当前状态 ${item.status}`,
+            nextStep: item.nextStep ?? null,
+            reminderAt: item.deadlineAt?.toISOString() ?? null,
             at: item.appliedAt.toISOString()
           }
         ]
@@ -77,6 +85,8 @@ function detailPayload(item: {
             kind: 'resume_bound' as const,
             title: '绑定简历版本',
             detail: `V${item.resume.version} / ${item.resume.theme}`,
+            nextStep: item.nextStep ?? null,
+            reminderAt: item.deadlineAt?.toISOString() ?? null,
             at: item.updatedAt.toISOString()
           }
         ]
@@ -96,6 +106,8 @@ function detailPayload(item: {
         kind: 'interview_scheduled' | 'interview_summary';
         title: string;
         detail: string;
+        nextStep: string | null;
+        reminderAt: string | null;
         at: string;
       }> = [
         {
@@ -103,6 +115,8 @@ function detailPayload(item: {
           kind: 'interview_scheduled' as const,
           title: `新增面试：${interview.roundName}`,
           detail: `${interview.status}${interview.scheduledAt ? ` · ${interview.scheduledAt.toISOString()}` : ''}`,
+          nextStep: null,
+          reminderAt: null,
           at: (interview.scheduledAt ?? interview.createdAt).toISOString()
         }
       ];
@@ -112,6 +126,8 @@ function detailPayload(item: {
           kind: 'interview_summary' as const,
           title: `生成面试复盘：${interview.roundName}`,
           detail: interview.summary,
+          nextStep: null,
+          reminderAt: null,
           at: interview.createdAt.toISOString()
         });
       }
@@ -125,6 +141,8 @@ function detailPayload(item: {
     priority: item.priority,
     notes: item.notes,
     source: item.source,
+    nextStep: item.nextStep,
+    deadlineAt: item.deadlineAt?.toISOString() ?? null,
     appliedAt: item.appliedAt?.toISOString() ?? null,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
@@ -215,6 +233,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
     }
 
+    const statusChanged = body.status && body.status !== application.status;
+    const nextStepChanged = body.nextStep !== undefined && body.nextStep !== application.nextStep;
+    const deadlineChanged = body.deadlineAt !== undefined && (body.deadlineAt ?? null) !== (application.deadlineAt?.toISOString() ?? null);
+
     const updated = await prisma.application.update({
       where: { id },
       data: {
@@ -222,7 +244,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         ...(body.priority ? { priority: body.priority } : {}),
         ...(body.resumeId !== undefined ? { resumeId: body.resumeId } : {}),
         ...(body.appliedAt !== undefined ? { appliedAt: body.appliedAt ? new Date(body.appliedAt) : null } : {}),
+        ...(body.deadlineAt !== undefined ? { deadlineAt: body.deadlineAt ? new Date(body.deadlineAt) : null } : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...(body.nextStep !== undefined ? { nextStep: body.nextStep } : {}),
         ...(body.source !== undefined ? { source: body.source } : {})
       },
       include: {
@@ -259,6 +283,59 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         }
       }
     });
+
+    if (statusChanged || nextStepChanged || deadlineChanged) {
+      const details = [
+        statusChanged ? `状态更新为 ${body.status}` : null,
+        nextStepChanged ? `下一步：${body.nextStep || '已清空'}` : null,
+        deadlineChanged ? `截止时间：${body.deadlineAt ? new Date(body.deadlineAt).toLocaleString('zh-CN') : '已清空'}` : null
+      ].filter(Boolean).join('；');
+
+      await prisma.applicationEvent.create({
+        data: {
+          userId: user.id,
+          applicationId: id,
+          kind: 'MANUAL_NOTE',
+          title: '投递更新',
+          detail: details,
+          nextStep: body.nextStep ?? updated.nextStep ?? null,
+          reminderAt: body.deadlineAt ? new Date(body.deadlineAt) : updated.deadlineAt ?? null
+        }
+      });
+
+      const refreshed = await prisma.application.findUnique({
+        where: { id },
+        include: {
+          jobPosting: true,
+          resume: { select: { id: true, version: true, theme: true } },
+          events: {
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              kind: true,
+              title: true,
+              detail: true,
+              nextStep: true,
+              reminderAt: true,
+              createdAt: true
+            }
+          },
+          interviews: {
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              roundName: true,
+              status: true,
+              summary: true,
+              scheduledAt: true,
+              createdAt: true
+            }
+          }
+        }
+      });
+
+      return ok(detailPayload(refreshed!));
+    }
 
     return ok(detailPayload(updated));
   } catch (error) {

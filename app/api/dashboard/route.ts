@@ -21,6 +21,8 @@ function toApplicationCard(item: {
   priority: ApplicationCard['priority'];
   notes: string;
   source: string | null;
+  nextStep: string | null;
+  deadlineAt: Date | null;
   appliedAt: Date | null;
   updatedAt: Date;
   jobPosting: { company: string; role: string };
@@ -33,6 +35,8 @@ function toApplicationCard(item: {
     priority: item.priority,
     notes: item.notes,
     source: item.source,
+    nextStep: item.nextStep,
+    deadlineAt: item.deadlineAt?.toISOString() ?? null,
     appliedAt: item.appliedAt?.toISOString() ?? null,
     updatedAt: item.updatedAt.toISOString(),
     company: item.jobPosting.company,

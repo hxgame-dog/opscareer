@@ -24,6 +24,8 @@ const CreateSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   notes: z.string().optional(),
   source: z.string().optional(),
+  nextStep: z.string().optional(),
+  deadlineAt: z.string().datetime().optional(),
   status: z
     .enum(['SAVED', 'READY', 'APPLIED', 'SCREENING', 'INTERVIEWING', 'OFFER', 'REJECTED', 'WITHDRAWN'])
     .optional()
@@ -35,6 +37,8 @@ function toApplicationCard(item: {
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   notes: string;
   source: string | null;
+  nextStep: string | null;
+  deadlineAt: Date | null;
   appliedAt: Date | null;
   updatedAt: Date;
   jobPosting: { company: string; role: string };
@@ -47,6 +51,8 @@ function toApplicationCard(item: {
     priority: item.priority,
     notes: item.notes,
     source: item.source,
+    nextStep: item.nextStep,
+    deadlineAt: item.deadlineAt?.toISOString() ?? null,
     appliedAt: item.appliedAt?.toISOString() ?? null,
     updatedAt: item.updatedAt.toISOString(),
     company: item.jobPosting.company,
@@ -194,6 +200,8 @@ export async function POST(req: NextRequest) {
         priority: body.priority ?? 'MEDIUM',
         notes: body.notes ?? '',
         source: body.source ?? null,
+        nextStep: body.nextStep ?? null,
+        deadlineAt: body.deadlineAt ? new Date(body.deadlineAt) : null,
         status: body.status ?? 'SAVED',
         appliedAt: body.status === 'APPLIED' ? new Date() : null
       },

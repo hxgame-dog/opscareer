@@ -778,6 +778,8 @@ export function Dashboard({
       resumeId?: string | null;
       notes?: string;
       source?: string | null;
+      nextStep?: string | null;
+      deadlineAt?: string | null;
       appliedAt?: string | null;
     }
   ) => {
@@ -1610,6 +1612,10 @@ export function Dashboard({
             <div className="small">
               {selectedApplication.status} · {selectedApplication.priority} · {selectedApplication.resumeLabel ?? '未绑定简历'}
             </div>
+            <div className="small">
+              {selectedApplication.nextStep ? `下一步：${selectedApplication.nextStep}` : '尚未设置下一步动作'}
+              {selectedApplication.deadlineAt ? ` · 截止 ${formatTime(selectedApplication.deadlineAt)}` : ''}
+            </div>
             <div className="small">最近变更 {formatTime(selectedApplication.updatedAt)}</div>
             <label>投递状态</label>
             <select
@@ -1658,6 +1664,22 @@ export function Dashboard({
                 setSelectedApplication((prev) => (prev ? { ...prev, source: e.target.value || null } : prev))
               }
             />
+            <label>下一步动作</label>
+            <input
+              value={selectedApplication.nextStep ?? ''}
+              onChange={(e) =>
+                setSelectedApplication((prev) => (prev ? { ...prev, nextStep: e.target.value || null } : prev))
+              }
+              placeholder="例如：周五前投递 / 约 HR 沟通 / 补充作品集"
+            />
+            <label>截止时间</label>
+            <input
+              type="datetime-local"
+              value={selectedApplication.deadlineAt ? new Date(selectedApplication.deadlineAt).toISOString().slice(0, 16) : ''}
+              onChange={(e) =>
+                setSelectedApplication((prev) => (prev ? { ...prev, deadlineAt: e.target.value ? new Date(e.target.value).toISOString() : null } : prev))
+              }
+            />
             <label>投递备注</label>
             <textarea
               className="detail-textarea"
@@ -1674,6 +1696,8 @@ export function Dashboard({
                       priority: selectedApplication.priority,
                       resumeId: selectedApplication.resumeId,
                       source: selectedApplication.source,
+                      nextStep: selectedApplication.nextStep,
+                      deadlineAt: selectedApplication.deadlineAt,
                       notes: selectedApplication.notes,
                       appliedAt:
                         selectedApplication.status === 'APPLIED'

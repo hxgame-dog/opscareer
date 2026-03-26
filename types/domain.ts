@@ -218,6 +218,8 @@ export interface ApplicationCard {
   priority: ApplicationPriority;
   notes: string;
   source: string | null;
+  nextStep: string | null;
+  deadlineAt: string | null;
   appliedAt: string | null;
   updatedAt: string;
   company: string;
@@ -237,6 +239,8 @@ export interface ApplicationDetail {
   priority: ApplicationPriority;
   notes: string;
   source: string | null;
+  nextStep: string | null;
+  deadlineAt: string | null;
   appliedAt: string | null;
   createdAt: string;
   updatedAt: string;

@@ -202,6 +202,8 @@ model Application {
   priority    ApplicationPriority @default(MEDIUM)
   source      String?
   notes       String              @default("")
+  nextStep    String?
+  deadlineAt  DateTime?
   appliedAt   DateTime?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
